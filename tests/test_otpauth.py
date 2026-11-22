@@ -62,3 +62,8 @@ def test_lowercase_and_spaced_secret():
 def test_invalid(uri):
     with pytest.raises(OtpError):
         Account.from_uri(uri)
+
+
+def test_control_chars_cleaned():
+    a = Account.from_uri("otpauth://totp/Github%0A:github.com%2Fyo?secret=JBSWY3DP&issuer=Github%0A")
+    assert (a.issuer, a.name, a.label) == ("Github", "github.com/yo", "Github:github.com/yo")

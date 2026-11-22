@@ -17,6 +17,11 @@ class OtpError(ValueError):
     """URI o parámetros OTP no válidos."""
 
 
+def clean_text(s: str) -> str:
+    """Quita caracteres de control y espacios sobrantes (hay exportadores que dejan «\\n»)."""
+    return " ".join("".join(c if c.isprintable() else " " for c in s).split())
+
+
 def b32decode(secret: str) -> bytes:
     s = secret.replace(" ", "").replace("-", "").upper().rstrip("=")
     try:
@@ -97,12 +102,12 @@ class Account:
         if "secret" not in q:
             raise OtpError("falta el parámetro secret")
         label = unquote(parts.path.lstrip("/"))
-        issuer = q.get("issuer", "")
-        name = label
+        issuer = clean_text(q.get("issuer", ""))
+        name = clean_text(label)
         if ":" in label:
             prefix, rest = label.split(":", 1)
-            issuer = issuer or prefix.strip()
-            name = rest.strip()
+            issuer = issuer or clean_text(prefix)
+            name = clean_text(rest)
         try:
             return cls(
                 secret=b32decode(q["secret"]),

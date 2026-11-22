@@ -19,7 +19,7 @@ import random
 from dataclasses import dataclass
 from urllib.parse import parse_qs, quote, urlsplit
 
-from .otpauth import Account, OtpError
+from .otpauth import Account, OtpError, clean_text
 
 SCHEME = "otpauth-migration"
 # Google Authenticator no lee bien QR más densos.
@@ -135,7 +135,7 @@ def _decode_params(b: bytes) -> Account:
         v = o.get(n, b"")
         return v.decode("utf-8") if isinstance(v, bytes) else ""
 
-    name, issuer = text(2), text(3)
+    name, issuer = clean_text(text(2)), clean_text(text(3))
     if issuer and name.startswith(issuer + ":"):
         name = name[len(issuer) + 1 :]
     return Account(

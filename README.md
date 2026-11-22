@@ -26,8 +26,8 @@ con los secretos guardados en el keystore del sistema y CLI equivalente.
 | `otp` / `otp <filtro>` | Lista códigos; Enter copia el código |
 | `otp add [nombre]` | Captura de pantalla · portapapeles · cámara |
 | `otp export [filtro]` | Muestra QR de migración (pide confirmación) |
-| `otp rm <nombre>` | Borra la cuenta (pide confirmación) |
-| `otp rename <viejo> <nuevo>` | Renombra |
+| `otp rm [filtro]` | Borra la cuenta (pide confirmación) |
+| `otp rename [filtro]` | Renombra (pide el nombre nuevo) |
 
 La palabra clave es configurable; `otpr` se acepta como alias.
 
@@ -38,7 +38,7 @@ otprunner list [filtro]
 otprunner code <nombre> [--copy]
 otprunner add [nombre] --screen | --camera | --clipboard | --uri URI
 otprunner import <fichero|URI>
-otprunner export [filtro] [--qr | --uri]
+otprunner export [filtro] [--format migration|otpauth] [--qr]
 otprunner rm <nombre>
 otprunner rename <viejo> <nuevo>
 otprunner install | uninstall | doctor
@@ -107,6 +107,6 @@ Referencias recopiladas: [docs/referencias.md](docs/referencias.md).
 1. ~~Núcleo: modelo `otpauth`, códec `otpauth-migration`, keystores, `doctor`~~
 2. ~~Runner DBus (`list`/copiar), unidad systemd, `install`~~
 3. ~~`add` por captura de pantalla y portapapeles; `import`~~
-4. `export` (QR/URI), `rm`, `rename`
+4. ~~`export` (QR/URI), `rm`, `rename`~~
 5. Cámara (varios proveedores)
 6. (Opcional) Frontend GNOME Shell search provider

@@ -133,3 +133,59 @@ async def test_run_add_cancelled_is_silent(store, monkeypatch):
     monkeypatch.setattr(capture, "from_screen", cancelled)
     await make(store).run(f"add{runner.SEP}screen{runner.SEP}x", "")
     assert len(store.data) == 3
+
+
+async def test_manage_matches(store):
+    r = make(store)
+    ms = await r.match("otp rm git")
+    assert [m[0] for m in ms] == [f"rm{runner.SEP}GitHub:alice"] and "Borrar" in ms[0][1]
+    ms = await r.match("otp rename")
+    assert len(ms) == 3 and all(m[0].startswith("rename") for m in ms)
+    (m,) = await r.match("otp export pay")
+    assert m[0] == f"export{runner.SEP}pay" and "1 cuenta " in m[1]
+    assert (await r.match("otp rm zzz"))[0][0] == "none"
+
+
+async def test_run_rm_rename_with_dialogs(store, monkeypatch):
+    from otprunner import dialogs
+
+    answers = {"confirm": False, "text": "Nuevo"}
+
+    async def confirm(*a, **k):
+        return answers["confirm"]
+
+    async def ask_text(*a, **k):
+        return answers["text"]
+
+    monkeypatch.setattr(dialogs, "confirm", confirm)
+    monkeypatch.setattr(dialogs, "ask_text", ask_text)
+    r = make(store)
+    await r.run(f"rm{runner.SEP}hotp", "")
+    assert "hotp" in store.data  # cancelado
+    answers["confirm"] = True
+    await r.run(f"rm{runner.SEP}hotp", "")
+    assert "hotp" not in store.data
+    await r.run(f"rename{runner.SEP}PayPal:bob", "")
+    assert "Nuevo" in store.data and "PayPal:bob" not in store.data
+
+
+async def test_run_export_shows_and_deletes(store, monkeypatch, tmp_path):
+    from otprunner import capture, dialogs
+
+    shown = []
+
+    async def confirm(*a, **k):
+        return True
+
+    async def show(path, title):
+        assert path.exists() and oct(path.stat().st_mode)[-3:] == "600"
+        shown.append(capture.decode_qr(path)[0])
+
+    monkeypatch.setattr(dialogs, "confirm", confirm)
+    monkeypatch.setattr(dialogs, "show_image", show)
+    monkeypatch.setattr(capture, "private_dir", lambda: tmp_path)
+    await make(store).run(f"export{runner.SEP}", "")
+    from otprunner import migration
+
+    assert len(shown) == 1 and len(migration.decode(shown[0]).accounts) == 3
+    assert list(tmp_path.iterdir()) == []

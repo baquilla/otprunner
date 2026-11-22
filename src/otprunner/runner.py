@@ -14,7 +14,7 @@ from dbus_fast.aio import MessageBus
 from dbus_fast.constants import RequestNameReply
 from dbus_fast.service import ServiceInterface, method
 
-from . import adding, capture, clipboard, config
+from . import adding, capture, clipboard, config, dialogs, exporting
 from .dbusutil import call
 from .notify import notify
 from .otpauth import Account, OtpError
@@ -100,6 +100,8 @@ class Runner:
         cmd, _, arg = flt.partition(" ")
         if cmd.casefold() == "add":
             return self._add_matches(arg.strip())
+        if cmd.casefold() in ("export", "rm", "rename"):
+            return self._manage_matches(cmd.casefold(), arg.strip(), accounts)
         f = flt.casefold()
         names = [n for n in accounts if f in n.casefold()]
         if not names:
@@ -136,8 +138,72 @@ class Runner:
 
     def _helper(self, sub: str, text: str, icon: str) -> tuple:
         """Entrada que completa la consulta en KRunner (p. ej. «otp add »)."""
-        return (f"query{SEP}{self.cfg.keywords[0]} {sub} ", text, icon, POSSIBLE, 0.1,
-                {"subtext": f"{self.cfg.keywords[0]} {sub} [nombre]", "category": "OTP"})
+        kw = self.cfg.keywords[0]
+        return (f"query{SEP}{kw} {sub} ", text, icon, POSSIBLE, 0.1,
+                {"subtext": f"{kw} add  ·  {kw} export  ·  {kw} rename  ·  {kw} rm", "category": "OTP"})
+
+    def _manage_matches(self, cmd: str, flt: str, accounts: dict) -> list:
+        f = flt.casefold()
+        names = [n for n in accounts if f in n.casefold()]
+        if not names:
+            text = "No hay cuentas" if not accounts else f"Ninguna cuenta coincide con «{flt}»"
+            return [("none", text, "dialog-information", INFORMATIONAL, 0.5, {})]
+        if cmd == "export":
+            what = f"{len(names)} cuenta" + ("s" if len(names) != 1 else "")
+            hint = "" if flt else f"  ·  filtra con: {self.cfg.keywords[0]} export <texto>"
+            return [(f"export{SEP}{flt}", f"Exportar {what} como QR para Google Authenticator",
+                     "document-export", EXACT, 1.0,
+                     {"subtext": "Muestra los secretos en pantalla (pide confirmación)" + hint, "category": "OTP"})]
+        verb, icon = ("Borrar", "edit-delete") if cmd == "rm" else ("Renombrar", "edit-rename")
+        dots = "" if cmd == "rm" else "…"
+        return [(f"{cmd}{SEP}{n}", f"{verb} «{n}»{dots}", icon, EXACT, max(0.5, 0.99 - i * 0.001),
+                 {"subtext": "Pide confirmación" if cmd == "rm" else "Pide el nombre nuevo", "category": "OTP"})
+                for i, n in enumerate(names[:20])]
+
+    async def _manage(self, cmd: str, arg: str) -> None:
+        try:
+            store = await self._get_store()
+            if cmd == "export":
+                await self._export(arg)
+            elif cmd == "rm":
+                if await dialogs.confirm("otprunner", f"¿Borrar la cuenta «{arg}»?\n\nNo se puede deshacer: "
+                                         "asegúrate de tener otra forma de acceder.", ok_label="Borrar"):
+                    if await store.delete(arg):
+                        await notify(self.bus, f"Borrada: {arg}", icon="edit-delete")
+            elif cmd == "rename":
+                new = await dialogs.ask_text("otprunner", f"Nuevo nombre para «{arg}»:", arg)
+                if new and new != arg:
+                    await store.rename(arg, new)
+                    await notify(self.bus, f"Renombrada: {arg} → {new}", icon="edit-rename")
+        except Exception as e:  # noqa: BLE001
+            log.exception("error en %s %s", cmd, arg)
+            await notify(self.bus, f"otprunner: no se pudo completar «{cmd}»", str(e), error=True)
+        finally:
+            self.forget()
+
+    async def _export(self, flt: str) -> None:
+        f = flt.casefold()
+        accounts = {n: a for n, a in (await self.accounts(refresh=True)).items() if f in n.casefold()}
+        exp = exporting.build(accounts)
+        if not exp.uris:
+            await notify(self.bus, "Nada que exportar", "\n".join(f"{n}: {r}" for n, r in exp.skipped), error=True)
+            return
+        n = len(exp.uris)
+        msg = (f"Se van a mostrar en pantalla {len(exp.exported)} secretos en {n} código"
+               f"{'s' if n > 1 else ''} QR.\n\nCualquiera que vea o fotografíe la pantalla podrá "
+               "copiar esas cuentas. ¿Continuar?")
+        if not await dialogs.confirm("otprunner: exportar", msg, ok_label="Mostrar QR"):
+            return
+        d = capture.private_dir()
+        for i, uri in enumerate(exp.uris, 1):
+            path = exporting.write_png(uri, d)
+            try:
+                await dialogs.show_image(path, f"otprunner: QR {i} de {n} — escanéalo con Google Authenticator")
+            finally:
+                path.unlink(missing_ok=True)
+        if exp.skipped:
+            await notify(self.bus, "Algunas cuentas no se exportaron",
+                         "\n".join(f"{n}: {r}" for n, r in exp.skipped), icon="dialog-warning")
 
     def _add_matches(self, name: str) -> list:
         target = f"«{name}»" if name else "cuenta"
@@ -188,6 +254,9 @@ class Runner:
         if kind == "add":
             source, _, acc_name = name.partition(SEP)
             await self._add(source, acc_name)
+            return
+        if kind in ("export", "rm", "rename"):
+            await self._manage(kind, name)
             return
         if kind != "code":
             return

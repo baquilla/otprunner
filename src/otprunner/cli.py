@@ -7,9 +7,9 @@ import asyncio
 import sys
 import time
 
-from . import __version__, config, importer, migration
+from . import __version__, config, exporting, importer, migration
 from .capture import CaptureError
-from .otpauth import Account, OtpError
+from .otpauth import OtpError
 from .store import StoreError, open_store
 
 
@@ -136,12 +136,22 @@ async def _cmd(args, cfg) -> int:
                 return 1
             if args.format == "otpauth":
                 for n in names:
-                    print(accounts[n].to_uri())
-            else:
-                sel: list[Account] = [accounts[n] for n in names]
-                for uri in migration.encode(sel, batch_size=args.batch):
+                    if args.qr:
+                        print(n)
+                        exporting.terminal(accounts[n].to_uri())
+                    else:
+                        print(accounts[n].to_uri())
+                return 0
+            exp = exporting.build({n: accounts[n] for n in names}, batch_size=args.batch)
+            for n, reason in exp.skipped:
+                print(f"omitida {n}: {reason} (usa --format otpauth)", file=sys.stderr)
+            for i, uri in enumerate(exp.uris, 1):
+                if args.qr:
+                    print(f"QR {i} de {len(exp.uris)}")
+                    exporting.terminal(uri)
+                else:
                     print(uri)
-            return 0
+            return 0 if exp.uris else 1
 
         if args.cmd == "rm":
             name = _resolve(await store.names(), args.name)
@@ -190,6 +200,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("filter", nargs="?")
     s.add_argument("--format", choices=("migration", "otpauth"), default="migration")
     s.add_argument("--batch", type=int, default=migration.DEFAULT_BATCH, help="cuentas por URI de migración")
+    s.add_argument("--qr", action="store_true", help="mostrar como QR en la terminal")
 
     s = sub.add_parser("rm", help="borra una cuenta")
     s.add_argument("name")

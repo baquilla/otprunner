@@ -83,7 +83,7 @@ Referencias recopiladas: [docs/referencias.md](docs/referencias.md).
 ## Hoja de ruta
 
 0. ~~Limpieza del repo~~
-1. Núcleo: modelo `otpauth`, códec `otpauth-migration`, keystores, `doctor`
+1. ~~Núcleo: modelo `otpauth`, códec `otpauth-migration`, keystores, `doctor`~~
 2. Runner DBus (`list`/copiar), unidad systemd, `install`
 3. `add` por captura de pantalla y portapapeles; `import`
 4. `export` (QR/URI), `rm`, `rename`

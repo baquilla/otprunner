@@ -11,7 +11,7 @@ requires-python = ">=3.10"
 authors = [{ name = "Juan Javier Baca" }]
 dependencies = [
     "dbus-fast>=2.0",       # DBus asyncio, Python puro: runner, Secret Service, KWallet, portales
-    "pyotp>=2.9",
+    "tomli>=2; python_version<'3.11'",
     "segno>=1.6",           # generación de QR (export)
     "zxing-cpp>=2.2",       # lectura de QR desde imagen
     "pillow>=10",
@@ -29,3 +29,4 @@ packages = ["src/otprunner"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

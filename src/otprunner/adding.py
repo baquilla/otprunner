@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from . import capture, importer
+from collections.abc import Callable
+
+from . import camera, capture, importer
 from .dbusutil import name_available
 from .store import Store
 
-SOURCES = ("screen", "clipboard")
+SOURCES = ("screen", "clipboard", "camera")
 
 
 @dataclass
@@ -49,10 +51,16 @@ class Outcome:
         return title, "\n".join(lines)
 
 
-async def acquire(source: str, bus, *, uri: str | None = None) -> tuple[importer.Parsed, list[str]]:
+async def acquire(source: str, bus, *, uri: str | None = None, device: str | None = None,
+                  progress: Callable[[str], None] | None = None) -> tuple[importer.Parsed, list[str]]:
     """Devuelve las cuentas encontradas y avisos para el usuario."""
     if source == "uri":
         return importer.parse_text(uri or ""), []
+    if source == "camera":
+        texts = await camera.scan(device, progress)
+        if not texts:
+            raise capture.CaptureCancelled("lectura cancelada")
+        return importer.parse_text("\n".join(texts)), []
     if source == "screen":
         return importer.parse_text("\n".join(await capture.from_screen(bus))), []
     if source == "clipboard":
@@ -68,8 +76,9 @@ async def acquire(source: str, bus, *, uri: str | None = None) -> tuple[importer
     raise ValueError(f"origen desconocido: {source}")
 
 
-async def add(store: Store, source: str, bus, *, name: str | None = None, uri: str | None = None) -> Outcome:
-    parsed, notes = await acquire(source, bus, uri=uri)
+async def add(store: Store, source: str, bus, *, name: str | None = None, uri: str | None = None,
+              device: str | None = None, progress: Callable[[str], None] | None = None) -> Outcome:
+    parsed, notes = await acquire(source, bus, uri=uri, device=device, progress=progress)
     out = Outcome(parsed, notes=notes)
     if parsed.accounts:
         out.result = await importer.import_accounts(store, parsed.accounts, name=name or None)

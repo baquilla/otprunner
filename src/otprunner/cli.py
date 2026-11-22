@@ -8,6 +8,7 @@ import sys
 import time
 
 from . import __version__, config, exporting, importer, migration
+from .camera import CameraError
 from .capture import CaptureError
 from .otpauth import OtpError
 from .store import StoreError, open_store
@@ -103,12 +104,15 @@ async def _cmd(args, cfg) -> int:
             from . import adding, capture
             from .dbusutil import session_bus
 
-            source = "uri" if args.uri else "clipboard" if args.clipboard else "screen"
+            source = "uri" if args.uri else "clipboard" if args.clipboard else "camera" if args.camera else "screen"
             if source == "screen":
                 print("Selecciona la zona de la pantalla con el QR…", file=sys.stderr)
+            elif source == "camera":
+                print("Enseña el QR a la cámara (cierra la ventana para cancelar)…", file=sys.stderr)
             bus = await session_bus()
             try:
-                outcome = await adding.add(store, source, bus, name=args.name, uri=args.uri)
+                outcome = await adding.add(store, source, bus, name=args.name, uri=args.uri, device=cfg.camera,
+                                           progress=lambda msg: print(msg, file=sys.stderr))
             except capture.CaptureCancelled:
                 print("cancelado", file=sys.stderr)
                 return 1
@@ -191,6 +195,7 @@ def build_parser() -> argparse.ArgumentParser:
     g = s.add_mutually_exclusive_group()
     g.add_argument("--screen", action="store_true", help="QR en una zona de la pantalla (por defecto)")
     g.add_argument("--clipboard", action="store_true", help="URI o imagen QR del portapapeles")
+    g.add_argument("--camera", action="store_true", help="QR enseñado a la cámara")
     g.add_argument("--uri", help="URI otpauth:// u otpauth-migration://")
 
     s = sub.add_parser("import", help="importa URIs otpauth/otpauth-migration de un fichero, '-' o la URI misma")
@@ -235,7 +240,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     try:
         return asyncio.run(_cmd(args, config.load()))
-    except (StoreError, OtpError, CaptureError, OSError) as e:
+    except (StoreError, OtpError, CaptureError, CameraError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
     except KeyboardInterrupt:

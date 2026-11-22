@@ -102,9 +102,9 @@ def test_config_show_codes(tmp_path):
 async def test_add_matches(store):
     r = make(store)
     ms = await r.match("otp add Mi Banco")
-    assert [m[0] for m in ms] == [f"add{runner.SEP}screen{runner.SEP}Mi Banco", f"add{runner.SEP}clipboard{runner.SEP}Mi Banco"]
+    assert [m[0] for m in ms] == [f"add{runner.SEP}{src}{runner.SEP}Mi Banco" for src in ("screen", "clipboard", "camera")]
     assert "«Mi Banco»" in ms[0][1]
-    assert len(await r.match("otp add")) == 2
+    assert len(await r.match("otp add")) == 3
 
 
 async def test_run_add_from_screen(store, monkeypatch):

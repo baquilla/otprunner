@@ -14,7 +14,7 @@ from dbus_fast.aio import MessageBus
 from dbus_fast.constants import RequestNameReply
 from dbus_fast.service import ServiceInterface, method
 
-from . import adding, capture, clipboard, config, dialogs, exporting
+from . import adding, camera, capture, clipboard, config, dialogs, exporting
 from .dbusutil import call
 from .notify import notify
 from .otpauth import Account, OtpError
@@ -215,6 +215,10 @@ class Runner:
             (f"add{SEP}clipboard{SEP}{name}", f"Añadir {target} desde el portapapeles", "edit-paste",
              EXACT, 0.9, {"subtext": "URI otpauth:// u otpauth-migration://, o imagen con el QR" + hint,
                           "category": "OTP"}),
+            (f"add{SEP}camera{SEP}{name}", f"Añadir {target} con la cámara", "camera-web",
+             EXACT, 0.8, {"subtext": ("Enseña el QR (o los de una exportación de Google) a la cámara"
+                                      if camera.providers() else "Requiere " + camera.install_hint()) + hint,
+                          "category": "OTP"}),
         ]
 
     async def _query(self, text: str) -> None:
@@ -228,7 +232,13 @@ class Runner:
     async def _add(self, source: str, name: str) -> None:
         try:
             store = await self._get_store()
-            outcome = await adding.add(store, source, self.bus, name=name or None)
+            def progress(msg: str) -> None:
+                if self.bus is not None:
+                    asyncio.get_running_loop().create_task(
+                        notify(self.bus, "otprunner", msg, icon="camera-web", timeout_ms=4000, transient=True))
+
+            outcome = await adding.add(store, source, self.bus, name=name or None,
+                                       device=self.cfg.camera, progress=progress)
         except capture.CaptureCancelled:
             return
         except Exception as e:  # noqa: BLE001

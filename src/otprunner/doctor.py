@@ -7,7 +7,7 @@ import platform
 import shutil
 import sys
 
-from . import __version__, config
+from . import __version__, camera, config
 from .dbusutil import name_available, session_bus
 from .store import BACKENDS, StoreUnavailable, kwallet, secretservice
 
@@ -86,9 +86,9 @@ async def run() -> int:
                 "instala xdg-desktop-portal-kde/-gnome o spectacle",
             ),
             (
-                "Cámara",
-                [("zbarcam", bin_("zbarcam"))],
-                "instala zbar-tools",
+                "Cámara (" + (", ".join(camera.devices()) or "sin dispositivos /dev/video*") + ")",
+                [("zbarcam", bin_("zbarcam")), ("opencv", "opencv" in camera.providers())],
+                camera.install_hint(),
             ),
             (
                 "Diálogos",

@@ -11,7 +11,7 @@ con los secretos guardados en el keystore del sistema y CLI equivalente.
 - Secretos en el keystore del sistema, el que haya: Secret Service (GNOME Keyring,
   KeePassXC, KWallet ≥ KF 5.97) o KWallet nativo. Nunca en ficheros planos.
 - Alta de cuentas sin abrir consola: captura de una zona de pantalla con el QR,
-  portapapeles o (más adelante) cámara.
+  portapapeles o cámara.
 - Import y export en formato `otpauth://` y `otpauth-migration://` (Google Authenticator),
   incluido export como QR para pasar cuentas al móvil.
 - Funciona en Plasma 5.27 y 6, X11 y Wayland; usa la herramienta disponible en cada caso
@@ -59,7 +59,8 @@ otprunner doctor      # comprueba keystore, portapapeles, captura, etc.
 - Captura de pantalla: portal XDG (normalmente ya presente), o `spectacle` / `gnome-screenshot` / `maim`.
 - Portapapeles: Klipper (KDE), o `wl-clipboard` (Wayland) / `xclip` (X11).
 - Confirmaciones: `kdialog` o `zenity`.
-- Cámara: `zbar-tools` (`zbarcam`).
+- Cámara: `zbar-tools` (`zbarcam`), o bien `pipx inject otprunner opencv-python`.
+  Con una exportación de Google en varios QR, la cámara sigue abierta hasta leerlos todos.
 
 ## Configuración
 
@@ -70,6 +71,7 @@ backend = "auto"            # auto | secretservice | kwallet
 keywords = ["otp", "otpr"]  # palabras clave en KRunner
 idle_timeout = 600          # segundos sin uso antes de cerrar el servicio (0 = nunca)
 show_codes = "selected"     # selected | always | never
+camera = "/dev/video0"      # opcional: dispositivo de la cámara
 ```
 
 `show_codes`:
@@ -108,5 +110,5 @@ Referencias recopiladas: [docs/referencias.md](docs/referencias.md).
 2. ~~Runner DBus (`list`/copiar), unidad systemd, `install`~~
 3. ~~`add` por captura de pantalla y portapapeles; `import`~~
 4. ~~`export` (QR/URI), `rm`, `rename`~~
-5. Cámara (varios proveedores)
+5. ~~Cámara (varios proveedores)~~
 6. (Opcional) Frontend GNOME Shell search provider

@@ -102,6 +102,7 @@ Para depurar el runner: `systemctl --user stop otprunner` y lanzar `otprunner se
 en una terminal; KRunner hablará con ese proceso.
 
 Referencias recopiladas: [docs/referencias.md](docs/referencias.md).
+Proyectos similares y plan de publicación: [docs/publicacion.md](docs/publicacion.md).
 
 ## Hoja de ruta
 
@@ -112,3 +113,4 @@ Referencias recopiladas: [docs/referencias.md](docs/referencias.md).
 4. ~~`export` (QR/URI), `rm`, `rename`~~
 5. ~~Cámara (varios proveedores)~~
 6. (Opcional) Frontend GNOME Shell search provider
+7. Publicación: PyPI → KDE Store → Flathub (ver [docs/publicacion.md](docs/publicacion.md))

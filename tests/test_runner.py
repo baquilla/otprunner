@@ -33,11 +33,12 @@ async def test_match_filters_and_formats(store):
     r = make(store)
     assert await r.match("firefox") == []
     ms = await r.match("otp pay")
-    assert [m[1] for m in ms] == ["PayPal:bob"]
+    assert [m[0] for m in ms] == [f"code{runner.SEP}PayPal:bob"]
     mid, text, icon, typ, rel, props = ms[0]
-    code, secs = props["subtext"].split("  ·  ")
-    assert len(code) == 7 and secs.endswith(" s") and typ == runner.EXACT
-    assert {m[1] for m in await r.match("otp")} == {"GitHub:alice", "PayPal:bob", "hotp"}
+    code, name = text.split("   ")
+    assert len(code) == 7 and name == "PayPal:bob" and typ == runner.EXACT
+    assert props["subtext"].startswith("vale hasta las ") and "después: " in props["subtext"]
+    assert {m[0].split(runner.SEP)[1] for m in await r.match("otp")} == {"GitHub:alice", "PayPal:bob", "hotp"}
     assert (await r.match("otp zzz"))[0][0] == "none"
 
 

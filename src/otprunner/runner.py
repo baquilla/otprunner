@@ -105,13 +105,20 @@ class Runner:
         out = []
         for i, name in enumerate(names):
             a = accounts[name]
+            # KRunner no refresca los resultados mientras no cambie la consulta, así que
+            # mostramos datos que siguen siendo ciertos: hasta cuándo vale y el siguiente.
+            # Enter copia siempre el código vigente (se calcula en Run).
             if a.type == "totp":
-                sub = f"{fmt_code(a.code(now))}  ·  {a.remaining(now)} s"
+                expires = now + a.remaining(now)
+                text = f"{fmt_code(a.code(now))}   {name}"
+                sub = (f"vale hasta las {time.strftime('%H:%M:%S', time.localtime(expires))}"
+                       f"  ·  después: {fmt_code(a.code(expires))}")
             else:
-                sub = "HOTP: Enter genera el siguiente código"
+                text = f"HOTP   {name}"
+                sub = "Enter genera y copia el siguiente código"
             exact = name.casefold() == f
             relevance = 1.0 if exact else max(0.5, 0.99 - i * 0.001)
-            out.append((f"code{SEP}{name}", name, "dialog-password", EXACT, relevance,
+            out.append((f"code{SEP}{name}", text, "dialog-password", EXACT, relevance,
                         {"subtext": sub, "category": "OTP"}))
         return out
 

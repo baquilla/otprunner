@@ -108,14 +108,19 @@ class Runner:
             # KRunner no refresca los resultados mientras no cambie la consulta, así que
             # mostramos datos que siguen siendo ciertos: hasta cuándo vale y el siguiente.
             # Enter copia siempre el código vigente (se calcula en Run).
-            if a.type == "totp":
+            mode = self.cfg.show_codes
+            if a.type == "hotp":
+                text, sub = name, "HOTP: Enter genera y copia el siguiente código"
+            elif mode == "always":
                 expires = now + a.remaining(now)
                 text = f"{fmt_code(a.code(now))}   {name}"
                 sub = (f"vale hasta las {time.strftime('%H:%M:%S', time.localtime(expires))}"
                        f"  ·  después: {fmt_code(a.code(expires))}")
-            else:
-                text = f"HOTP   {name}"
-                sub = "Enter genera y copia el siguiente código"
+            elif mode == "selected":
+                # Plasma 5 solo muestra el subtítulo de la línea seleccionada.
+                text, sub = name, fmt_code(a.code(now))
+            else:  # never
+                text, sub = name, "Enter copia el código"
             exact = name.casefold() == f
             relevance = 1.0 if exact else max(0.5, 0.99 - i * 0.001)
             out.append((f"code{SEP}{name}", text, "dialog-password", EXACT, relevance,

@@ -5,6 +5,7 @@ Ejemplo::
     backend = "auto"            # auto | secretservice | kwallet
     keywords = ["otp", "otpr"]  # palabras clave en KRunner
     idle_timeout = 600          # segundos sin uso antes de cerrar el servicio (0 = nunca)
+    show_codes = "selected"     # selected: solo en la línea seleccionada | always | never
 """
 
 from __future__ import annotations
@@ -20,6 +21,9 @@ else:  # pragma: no cover
     import tomli as tomllib
 
 
+SHOW_CODES = ("selected", "always", "never")
+
+
 def config_path() -> Path:
     base = os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config"
     return Path(base) / "otprunner" / "config.toml"
@@ -30,6 +34,7 @@ class Config:
     backend: str = "auto"
     keywords: list[str] = field(default_factory=lambda: ["otp", "otpr"])
     idle_timeout: float = 600
+    show_codes: str = "selected"
 
 
 def load(path: Path | None = None) -> Config:
@@ -50,4 +55,9 @@ def load(path: Path | None = None) -> Config:
     idle = data.get("idle_timeout")
     if isinstance(idle, (int, float)) and not isinstance(idle, bool) and idle >= 0:
         cfg.idle_timeout = idle
+    show = data.get("show_codes")
+    if show in SHOW_CODES:
+        cfg.show_codes = show
+    elif show is not None:
+        print(f"otprunner: show_codes={show!r} no válido (usa {', '.join(SHOW_CODES)})", file=sys.stderr)
     return cfg

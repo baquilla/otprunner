@@ -16,11 +16,11 @@ def store():
     return s
 
 
-def make(store, **kw):
+def make(store, show_codes="always", **kw):
     async def factory():
         return store
 
-    return runner.Runner(config.Config(), factory, **kw)
+    return runner.Runner(config.Config(show_codes=show_codes), factory, **kw)
 
 
 @pytest.mark.parametrize("q,expected", [("otp", ""), ("OTP  pay ", "pay"), ("otpr git", "git"), ("otpx", None),
@@ -80,3 +80,18 @@ async def test_run_copies_and_advances_hotp(store, monkeypatch):
 def test_fmt_code():
     assert runner.fmt_code("123456") == "123 456"
     assert runner.fmt_code("12345678") == "1234 5678"
+
+
+async def test_show_codes_modes(store):
+    (m,) = await make(store, "selected").match("otp pay")
+    assert m[1] == "PayPal:bob" and m[5]["subtext"].replace(" ", "").isdigit()
+    (m,) = await make(store, "never").match("otp pay")
+    assert m[1] == "PayPal:bob" and not any(c.isdigit() for c in m[5]["subtext"])
+
+
+def test_config_show_codes(tmp_path):
+    p = tmp_path / "c.toml"
+    p.write_text('show_codes = "always"')
+    assert config.load(p).show_codes == "always"
+    p.write_text('show_codes = "nope"')
+    assert config.load(p).show_codes == "selected"

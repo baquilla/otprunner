@@ -69,7 +69,16 @@ Opcional, en `~/.config/otprunner/config.toml` (tras cambiar `keywords`, repite 
 backend = "auto"            # auto | secretservice | kwallet
 keywords = ["otp", "otpr"]  # palabras clave en KRunner
 idle_timeout = 600          # segundos sin uso antes de cerrar el servicio (0 = nunca)
+show_codes = "selected"     # selected | always | never
 ```
+
+`show_codes`:
+- `selected` (por defecto): el código va en el subtítulo, que KRunner (Plasma 5) solo muestra
+  en la línea seleccionada; así no se ven todos a la vez.
+- `always`: código en el título, siempre visible, con su hora de caducidad y el siguiente.
+- `never`: no se muestra; Enter lo copia.
+
+KRunner no refresca los resultados hasta que cambia la búsqueda; Enter copia siempre el código vigente.
 
 ## Cómo funciona
 

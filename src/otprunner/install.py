@@ -32,12 +32,41 @@ def _config_home() -> Path:
     return Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
 
 
+ICON = "otprunner"
+# (fichero del paquete, directorio del tema hicolor): versión simplificada en 16/22 px
+ICON_FILES = (
+    ("otprunner.svg", "scalable/apps"),
+    ("otprunner-small.svg", "16x16/apps"),
+    ("otprunner-small.svg", "22x22/apps"),
+)
+
+
 def paths() -> dict[str, Path]:
+    icons = _data_home() / "icons/hicolor"
     return {
         "runner": _data_home() / "krunner/dbusplugins/otprunner.desktop",
         "dbus": _data_home() / f"dbus-1/services/{BUS_NAME}.service",
         "systemd": _config_home() / "systemd/user" / UNIT,
+        **{f"icon {d.split('/')[0]}": icons / d / f"{ICON}.svg" for _, d in ICON_FILES},
     }
+
+
+def install_icons() -> list[Path]:
+    from importlib.resources import files
+
+    out = []
+    icons = _data_home() / "icons/hicolor"
+    for src, d in ICON_FILES:
+        dest = icons / d / f"{ICON}.svg"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes((files("otprunner") / "data" / src).read_bytes())
+        out.append(dest)
+    # Si el usuario tiene caché de iconos en hicolor, que se regenere.
+    if (icons / "icon-theme.cache").exists():
+        _run(["gtk-update-icon-cache", "-f", "-t", str(icons)])
+    else:
+        os.utime(icons)
+    return out
 
 
 def legacy_paths() -> list[Path]:
@@ -74,7 +103,7 @@ def runner_desktop(cfg: config.Config) -> str:
         "[Desktop Entry]",
         "Name=OTP",
         "Comment=Códigos TOTP del keystore del sistema",
-        "Icon=dialog-password",
+        f"Icon={ICON}",
         "Type=Service",
         "X-KDE-ServiceTypes=Plasma/Runner",
         "X-KDE-PluginInfo-Name=otprunner",
@@ -139,6 +168,9 @@ def install(verbose: bool = True) -> int:
         p[key].write_text(content)
         if verbose:
             print(f"escrito: {p[key]}")
+    for icon in install_icons():
+        if verbose:
+            print(f"escrito: {icon}")
     for old in legacy_paths():
         if old.exists() and "otprunner" in old.read_text(errors="replace"):
             old.unlink()

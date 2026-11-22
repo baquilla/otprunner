@@ -91,6 +91,24 @@ KRunner no refresca los resultados hasta que cambia la búsqueda; Enter copia si
 - Cada cuenta es un item del keystore con atributos `application=otprunner` y
   `account=<nombre>`; el secreto es la URI `otpauth://` completa.
 
+## Icono
+
+<img src="src/otprunner/data/otprunner.svg" width="64" alt="icono de otprunner">
+
+- **Qué representa**: un anillo de cuenta atrás alrededor de una bocallave. Junta los dos
+  elementos de un TOTP: un secreto que solo tú tienes y un código que caduca. El tramo
+  abierto del anillo es el tiempo ya consumido de los 30 s.
+- **Por qué no un candado o un escudo**: son los iconos genéricos de gestor de contraseñas;
+  otprunner no guarda contraseñas, da códigos efímeros.
+- **Estilo**: plano, en el azul de Breeze (`#3daee9`) con un degradado suave, y una retícula
+  de 128 px con márgenes de 8 px, como los iconos de aplicación de Plasma. Solo blanco sobre
+  azul: contrasta igual en temas claros y oscuros.
+- **Tamaños pequeños**: a 16 y 22 px (KRunner, bandeja, notificaciones) se usa una versión
+  dibujada sobre una retícula de 16 px: anillo más grueso, sin pista de fondo y bocallave
+  más grande, para que no se empaste.
+- **Dónde se usa**: plugin y resultados de KRunner, y notificaciones. Las acciones (añadir,
+  borrar, exportar…) conservan los iconos estándar del tema, que ya dicen qué hacen.
+
 ## Desarrollo
 
 ```bash

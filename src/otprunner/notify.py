@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 DEST = ("org.freedesktop.Notifications", "/org/freedesktop/Notifications", "org.freedesktop.Notifications")
 
 
-async def notify(bus, summary: str, body: str = "", icon: str = "dialog-password", *,
+async def notify(bus, summary: str, body: str = "", icon: str = "otprunner", *,
                  timeout_ms: int = 5000, transient: bool = False, error: bool = False) -> None:
     hints = {"desktop-entry": Variant("s", "otprunner")}
     if transient:

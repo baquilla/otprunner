@@ -23,6 +23,7 @@ from .store import Store, StoreError, open_store
 log = logging.getLogger(__name__)
 
 BUS_NAME = "net.bacamt.otprunner"
+ICON = "otprunner"  # instalado en hicolor por «otprunner install»
 OBJECT_PATH = "/runner"
 
 # Plasma::QueryMatch::Type
@@ -130,7 +131,7 @@ class Runner:
                 text, sub = name, "Enter copia el código"
             exact = name.casefold() == f
             relevance = 1.0 if exact else max(0.5, 0.99 - i * 0.001)
-            out.append((f"code{SEP}{name}", text, "dialog-password", EXACT, relevance,
+            out.append((f"code{SEP}{name}", text, ICON, EXACT, relevance,
                         {"subtext": sub, "category": "OTP"}))
         if not f:
             out.append(self._helper("add", "Añadir una cuenta…", "list-add"))
@@ -169,12 +170,12 @@ class Runner:
                 if await dialogs.confirm("otprunner", f"¿Borrar la cuenta «{arg}»?\n\nNo se puede deshacer: "
                                          "asegúrate de tener otra forma de acceder.", ok_label="Borrar"):
                     if await store.delete(arg):
-                        await notify(self.bus, f"Borrada: {arg}", icon="edit-delete")
+                        await notify(self.bus, f"Borrada: {arg}")
             elif cmd == "rename":
                 new = await dialogs.ask_text("otprunner", f"Nuevo nombre para «{arg}»:", arg)
                 if new and new != arg:
                     await store.rename(arg, new)
-                    await notify(self.bus, f"Renombrada: {arg} → {new}", icon="edit-rename")
+                    await notify(self.bus, f"Renombrada: {arg} → {new}")
         except Exception as e:  # noqa: BLE001
             log.exception("error en %s %s", cmd, arg)
             await notify(self.bus, f"otprunner: no se pudo completar «{cmd}»", str(e), error=True)
@@ -235,7 +236,7 @@ class Runner:
             def progress(msg: str) -> None:
                 if self.bus is not None:
                     asyncio.get_running_loop().create_task(
-                        notify(self.bus, "otprunner", msg, icon="camera-web", timeout_ms=4000, transient=True))
+                        notify(self.bus, "otprunner", msg, timeout_ms=4000, transient=True))
 
             outcome = await adding.add(store, source, self.bus, name=name or None,
                                        device=self.cfg.camera, progress=progress)
@@ -251,7 +252,7 @@ class Runner:
         title, body = outcome.summary()
         log.info("alta desde %s: %s %s", source, title, body.replace("\n", " | "))
         if self.bus is not None:
-            await notify(self.bus, title, body, icon="list-add" if outcome.ok else "dialog-warning",
+            await notify(self.bus, title, body, icon=ICON if outcome.ok else "dialog-warning",
                          error=not outcome.ok and bool(outcome.parsed.errors))
 
     async def run(self, match_id: str, action_id: str) -> None:
@@ -283,7 +284,7 @@ class Runner:
             provider = await clipboard.copy(code, self.bus)
             log.info("código de %s copiado (%s)", name, provider)
             if self.bus is not None:
-                await notify(self.bus, f"Código de {name} copiado", icon="edit-paste",
+                await notify(self.bus, f"Código de {name} copiado",
                              timeout_ms=2000, transient=True)
         except Exception as e:  # noqa: BLE001 — el servicio no debe caerse por un Run
             log.exception("error ejecutando %s", name)

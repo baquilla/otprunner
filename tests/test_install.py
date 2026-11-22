@@ -22,3 +22,16 @@ def test_generated_files(tmp_path, monkeypatch):
     assert "Type=dbus" in install.systemd_unit()
     p = install.paths()
     assert str(p["runner"]).endswith("data/krunner/dbusplugins/otprunner.desktop")
+
+
+def test_install_icons(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+    out = install.install_icons()
+    assert [p.relative_to(tmp_path).as_posix() for p in out] == [
+        "icons/hicolor/scalable/apps/otprunner.svg",
+        "icons/hicolor/16x16/apps/otprunner.svg",
+        "icons/hicolor/22x22/apps/otprunner.svg",
+    ]
+    assert all(p.read_text().startswith("<svg") for p in out)
+    assert "Icon=otprunner" in install.runner_desktop(config.Config())
+    assert all(p in install.paths().values() for p in out)

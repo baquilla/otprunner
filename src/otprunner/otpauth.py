@@ -108,6 +108,8 @@ class Account:
             prefix, rest = label.split(":", 1)
             issuer = issuer or clean_text(prefix)
             name = clean_text(rest)
+        if issuer and name.startswith(issuer + ":"):  # «PayPal:PayPal:yo» → name «yo»
+            name = name[len(issuer) + 1 :].strip()
         try:
             return cls(
                 secret=b32decode(q["secret"]),

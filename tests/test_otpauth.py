@@ -67,3 +67,9 @@ def test_invalid(uri):
 def test_control_chars_cleaned():
     a = Account.from_uri("otpauth://totp/Github%0A:github.com%2Fyo?secret=JBSWY3DP&issuer=Github%0A")
     assert (a.issuer, a.name, a.label) == ("Github", "github.com/yo", "Github:github.com/yo")
+
+
+def test_repeated_issuer_prefix_roundtrip():
+    a = Account.from_uri("otpauth://totp/PayPal%0A:PayPal:yo@x.com?secret=JBSWY3DP&issuer=PayPal%0A")
+    assert (a.issuer, a.name, a.label) == ("PayPal", "yo@x.com", "PayPal:yo@x.com")
+    assert Account.from_uri(a.to_uri()) == a

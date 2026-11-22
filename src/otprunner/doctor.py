@@ -78,9 +78,9 @@ async def run() -> int:
             (
                 "Captura",
                 [
-                    ("portal XDG Screenshot", await dbus("org.freedesktop.portal.Desktop")),
                     ("spectacle", bin_("spectacle")),
-                    ("gnome-screenshot", bin_("gnome-screenshot")),
+                    ("portal XDG Screenshot", await dbus("org.freedesktop.portal.Desktop")),
+                    ("gnome-screenshot", not wayland and bin_("gnome-screenshot")),
                     ("maim", not wayland and bin_("maim")),
                 ],
                 "instala xdg-desktop-portal-kde/-gnome o spectacle",

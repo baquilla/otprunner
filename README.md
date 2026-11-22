@@ -106,7 +106,7 @@ Referencias recopiladas: [docs/referencias.md](docs/referencias.md).
 0. ~~Limpieza del repo~~
 1. ~~Núcleo: modelo `otpauth`, códec `otpauth-migration`, keystores, `doctor`~~
 2. ~~Runner DBus (`list`/copiar), unidad systemd, `install`~~
-3. `add` por captura de pantalla y portapapeles; `import`
+3. ~~`add` por captura de pantalla y portapapeles; `import`~~
 4. `export` (QR/URI), `rm`, `rename`
 5. Cámara (varios proveedores)
 6. (Opcional) Frontend GNOME Shell search provider

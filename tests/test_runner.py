@@ -38,7 +38,9 @@ async def test_match_filters_and_formats(store):
     code, name = text.split("   ")
     assert len(code) == 7 and name == "PayPal:bob" and typ == runner.EXACT
     assert props["subtext"].startswith("vale hasta las ") and "después: " in props["subtext"]
-    assert {m[0].split(runner.SEP)[1] for m in await r.match("otp")} == {"GitHub:alice", "PayPal:bob", "hotp"}
+    ms = await r.match("otp")
+    assert {m[0].split(runner.SEP)[1] for m in ms if m[0].startswith("code")} == {"GitHub:alice", "PayPal:bob", "hotp"}
+    assert ms[-1][0] == f"query{runner.SEP}otp add "  # entrada de ayuda al final
     assert (await r.match("otp zzz"))[0][0] == "none"
 
 
@@ -55,7 +57,7 @@ async def test_cache_and_forget(store):
     r = make(store)
     await r.match("otp")
     store.data.clear()
-    assert len(await r.match("otp")) == 3  # cacheado
+    assert len(await r.match("otp pay")) == 1  # cacheado
     r.forget()
     assert (await r.match("otp"))[0][0] == "none"
 
@@ -95,3 +97,39 @@ def test_config_show_codes(tmp_path):
     assert config.load(p).show_codes == "always"
     p.write_text('show_codes = "nope"')
     assert config.load(p).show_codes == "selected"
+
+
+async def test_add_matches(store):
+    r = make(store)
+    ms = await r.match("otp add Mi Banco")
+    assert [m[0] for m in ms] == [f"add{runner.SEP}screen{runner.SEP}Mi Banco", f"add{runner.SEP}clipboard{runner.SEP}Mi Banco"]
+    assert "«Mi Banco»" in ms[0][1]
+    assert len(await r.match("otp add")) == 2
+
+
+async def test_run_add_from_screen(store, monkeypatch):
+    from otprunner import capture, migration
+
+    new = [Account(secret=bytes([i]) * 10, name=f"n{i}", issuer="X") for i in range(1, 4)]
+    uris = migration.encode(new, batch_size=2)
+
+    async def fake_screen(bus, delay=0.4):
+        return [uris[0]]
+
+    monkeypatch.setattr(capture, "from_screen", fake_screen)
+    r = make(store)
+    await r.match("otp")  # llena la caché
+    await r.run(f"add{runner.SEP}screen{runner.SEP}", "")
+    names = [m[0].split(runner.SEP)[1] for m in await r.match("otp X:")]
+    assert names == ["X:n1", "X:n2"]  # la caché se invalidó
+
+
+async def test_run_add_cancelled_is_silent(store, monkeypatch):
+    from otprunner import capture
+
+    async def cancelled(bus, delay=0.4):
+        raise capture.CaptureCancelled("cancelada")
+
+    monkeypatch.setattr(capture, "from_screen", cancelled)
+    await make(store).run(f"add{runner.SEP}screen{runner.SEP}x", "")
+    assert len(store.data) == 3

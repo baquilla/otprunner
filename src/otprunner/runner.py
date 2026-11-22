@@ -14,7 +14,8 @@ from dbus_fast.aio import MessageBus
 from dbus_fast.constants import RequestNameReply
 from dbus_fast.service import ServiceInterface, method
 
-from . import clipboard, config
+from . import adding, capture, clipboard, config
+from .dbusutil import call
 from .notify import notify
 from .otpauth import Account, OtpError
 from .store import Store, StoreError, open_store
@@ -96,11 +97,15 @@ class Runner:
             accounts = await self.accounts()
         except (StoreError, OtpError) as e:
             return [("error", f"otprunner: {e}", "dialog-error", INFORMATIONAL, 1.0, {"subtext": "Keystore"})]
+        cmd, _, arg = flt.partition(" ")
+        if cmd.casefold() == "add":
+            return self._add_matches(arg.strip())
         f = flt.casefold()
         names = [n for n in accounts if f in n.casefold()]
         if not names:
             text = "No hay cuentas" if not accounts else f"Ninguna cuenta coincide con «{flt}»"
-            return [("none", text, "dialog-information", INFORMATIONAL, 0.5, {})]
+            return [("none", text, "dialog-information", INFORMATIONAL, 0.5, {}),
+                    self._helper("add", "Añadir una cuenta…", "list-add")]
         now = time.time()
         out = []
         for i, name in enumerate(names):
@@ -125,11 +130,65 @@ class Runner:
             relevance = 1.0 if exact else max(0.5, 0.99 - i * 0.001)
             out.append((f"code{SEP}{name}", text, "dialog-password", EXACT, relevance,
                         {"subtext": sub, "category": "OTP"}))
+        if not f:
+            out.append(self._helper("add", "Añadir una cuenta…", "list-add"))
         return out
+
+    def _helper(self, sub: str, text: str, icon: str) -> tuple:
+        """Entrada que completa la consulta en KRunner (p. ej. «otp add »)."""
+        return (f"query{SEP}{self.cfg.keywords[0]} {sub} ", text, icon, POSSIBLE, 0.1,
+                {"subtext": f"{self.cfg.keywords[0]} {sub} [nombre]", "category": "OTP"})
+
+    def _add_matches(self, name: str) -> list:
+        target = f"«{name}»" if name else "cuenta"
+        hint = "" if name else "  ·  nombre opcional: otp add <nombre>"
+        return [
+            (f"add{SEP}screen{SEP}{name}", f"Añadir {target} desde un QR en pantalla", "spectacle",
+             EXACT, 1.0, {"subtext": "Selecciona la zona con el QR (vale una exportación de Google)" + hint,
+                          "category": "OTP"}),
+            (f"add{SEP}clipboard{SEP}{name}", f"Añadir {target} desde el portapapeles", "edit-paste",
+             EXACT, 0.9, {"subtext": "URI otpauth:// u otpauth-migration://, o imagen con el QR" + hint,
+                          "category": "OTP"}),
+        ]
+
+    async def _query(self, text: str) -> None:
+        if self.bus is None:
+            return
+        try:
+            await call(self.bus, "org.kde.krunner", "/App", "org.kde.krunner.App", "query", "s", [text])
+        except Exception as e:  # noqa: BLE001
+            log.warning("no se pudo reabrir KRunner: %s", e)
+
+    async def _add(self, source: str, name: str) -> None:
+        try:
+            store = await self._get_store()
+            outcome = await adding.add(store, source, self.bus, name=name or None)
+        except capture.CaptureCancelled:
+            return
+        except Exception as e:  # noqa: BLE001
+            log.exception("error añadiendo desde %s", source)
+            if self.bus is not None:
+                await notify(self.bus, "otprunner: no se pudo añadir", str(e), error=True)
+            return
+        finally:
+            self.forget()
+        title, body = outcome.summary()
+        log.info("alta desde %s: %s %s", source, title, body.replace("\n", " | "))
+        if self.bus is not None:
+            await notify(self.bus, title, body, icon="list-add" if outcome.ok else "dialog-warning",
+                         error=not outcome.ok and bool(outcome.parsed.errors))
 
     async def run(self, match_id: str, action_id: str) -> None:
         self.last_activity = time.monotonic()
         kind, _, name = match_id.partition(SEP)
+        if kind == "query":
+            await asyncio.sleep(0.2)  # dejar que KRunner se cierre antes de reabrirlo
+            await self._query(name)
+            return
+        if kind == "add":
+            source, _, acc_name = name.partition(SEP)
+            await self._add(source, acc_name)
+            return
         if kind != "code":
             return
         try:

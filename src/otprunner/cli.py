@@ -8,6 +8,7 @@ import sys
 import time
 
 from . import __version__, config, importer, migration
+from .capture import CaptureError
 from .otpauth import Account, OtpError
 from .store import StoreError, open_store
 
@@ -99,17 +100,25 @@ async def _cmd(args, cfg) -> int:
             return 0
 
         if args.cmd == "add":
-            if args.uri:
-                parsed = importer.parse_text(args.uri)
-            else:
-                print("de momento solo --uri (la captura de pantalla y el portapapeles llegan en la fase 3)", file=sys.stderr)
-                return 2
-            if not parsed.accounts:
-                for e in parsed.errors or ["no se encontró ninguna URI otpauth"]:
-                    print(f"error: {e}", file=sys.stderr)
+            from . import adding, capture
+            from .dbusutil import session_bus
+
+            source = "uri" if args.uri else "clipboard" if args.clipboard else "screen"
+            if source == "screen":
+                print("Selecciona la zona de la pantalla con el QR…", file=sys.stderr)
+            bus = await session_bus()
+            try:
+                outcome = await adding.add(store, source, bus, name=args.name, uri=args.uri)
+            except capture.CaptureCancelled:
+                print("cancelado", file=sys.stderr)
                 return 1
-            res = await importer.import_accounts(store, parsed.accounts, name=args.name)
-            return _report(res, parsed.errors)
+            finally:
+                bus.disconnect()
+            title, body = outcome.summary()
+            print(title)
+            if body:
+                print(body)
+            return 0 if outcome.ok else 1
 
         if args.cmd == "import":
             parsed = importer.parse_text(_read_source(args.source))
@@ -169,7 +178,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("add", help="añade una cuenta")
     s.add_argument("name", nargs="?", help="nombre (por defecto, issuer:cuenta del QR)")
-    s.add_argument("--uri", help="URI otpauth:// u otpauth-migration://")
+    g = s.add_mutually_exclusive_group()
+    g.add_argument("--screen", action="store_true", help="QR en una zona de la pantalla (por defecto)")
+    g.add_argument("--clipboard", action="store_true", help="URI o imagen QR del portapapeles")
+    g.add_argument("--uri", help="URI otpauth:// u otpauth-migration://")
 
     s = sub.add_parser("import", help="importa URIs otpauth/otpauth-migration de un fichero, '-' o la URI misma")
     s.add_argument("source")
@@ -212,7 +224,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     try:
         return asyncio.run(_cmd(args, config.load()))
-    except (StoreError, OtpError, OSError) as e:
+    except (StoreError, OtpError, CaptureError, OSError) as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
     except KeyboardInterrupt:

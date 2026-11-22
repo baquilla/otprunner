@@ -61,10 +61,22 @@ otprunner doctor      # comprueba keystore, portapapeles, captura, etc.
 - Confirmaciones: `kdialog` o `zenity`.
 - Cámara: `zbar-tools` (`zbarcam`).
 
+## Configuración
+
+Opcional, en `~/.config/otprunner/config.toml` (tras cambiar `keywords`, repite `otprunner install`):
+
+```toml
+backend = "auto"            # auto | secretservice | kwallet
+keywords = ["otp", "otpr"]  # palabras clave en KRunner
+idle_timeout = 600          # segundos sin uso antes de cerrar el servicio (0 = nunca)
+```
+
 ## Cómo funciona
 
 - KRunner habla con el runner por DBus (`org.kde.krunner1`). El servicio se activa por DBus,
   que delega en una unidad systemd de usuario: logs en `journalctl --user -u otprunner`.
+- El servicio cachea las cuentas durante la sesión de KRunner y se cierra tras
+  `idle_timeout` segundos sin uso: los secretos no se quedan en memoria indefinidamente.
 - Cada cuenta es un item del keystore con atributos `application=otprunner` y
   `account=<nombre>`; el secreto es la URI `otpauth://` completa.
 
@@ -84,7 +96,7 @@ Referencias recopiladas: [docs/referencias.md](docs/referencias.md).
 
 0. ~~Limpieza del repo~~
 1. ~~Núcleo: modelo `otpauth`, códec `otpauth-migration`, keystores, `doctor`~~
-2. Runner DBus (`list`/copiar), unidad systemd, `install`
+2. ~~Runner DBus (`list`/copiar), unidad systemd, `install`~~
 3. `add` por captura de pantalla y portapapeles; `import`
 4. `export` (QR/URI), `rm`, `rename`
 5. Cámara (varios proveedores)

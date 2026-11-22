@@ -101,6 +101,17 @@ async def run() -> int:
                 "sin notificaciones los errores solo irán al journal",
             ),
         ]
+        from . import install
+
+        print("Instalación")
+        for key, path in install.paths().items():
+            print(f"  {OK if path.exists() else NO} {key:8} {path}")
+        if not install.paths()["runner"].exists():
+            print(f"  {WARN} ejecuta «otprunner install» para registrar el runner")
+        for old in install.legacy_paths():
+            if old.exists():
+                print(f"  {WARN} resto de la versión antigua: {old} (lo borra «otprunner install»)")
+
         for title, provs, hint in groups:
             print(title)
             first = next((n for n, ok in provs if ok), None)

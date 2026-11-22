@@ -4,6 +4,7 @@ Ejemplo::
 
     backend = "auto"            # auto | secretservice | kwallet
     keywords = ["otp", "otpr"]  # palabras clave en KRunner
+    idle_timeout = 600          # segundos sin uso antes de cerrar el servicio (0 = nunca)
 """
 
 from __future__ import annotations
@@ -28,6 +29,7 @@ def config_path() -> Path:
 class Config:
     backend: str = "auto"
     keywords: list[str] = field(default_factory=lambda: ["otp", "otpr"])
+    idle_timeout: float = 600
 
 
 def load(path: Path | None = None) -> Config:
@@ -45,4 +47,7 @@ def load(path: Path | None = None) -> Config:
     kw = data.get("keywords")
     if isinstance(kw, list) and kw and all(isinstance(k, str) and k for k in kw):
         cfg.keywords = kw
+    idle = data.get("idle_timeout")
+    if isinstance(idle, (int, float)) and not isinstance(idle, bool) and idle >= 0:
+        cfg.idle_timeout = idle
     return cfg

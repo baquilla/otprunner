@@ -1,0 +1,173 @@
+"""Registro del runner en el escritorio del usuario (sin root).
+
+Ficheros que se crean:
+
+- ``$XDG_DATA_HOME/krunner/dbusplugins/otprunner.desktop``: metadatos del runner
+  (Plasma 5.27 y 6 leen este directorio).
+- ``$XDG_DATA_HOME/dbus-1/services/<bus>.service``: activación por DBus.
+- ``$XDG_CONFIG_HOME/systemd/user/otprunner.service``: si hay systemd de usuario;
+  la activación DBus delega en él (logs en journalctl, reinicio en fallos).
+"""
+
+from __future__ import annotations
+
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+from . import __version__, config
+from .runner import BUS_NAME, OBJECT_PATH
+
+UNIT = "otprunner.service"
+
+
+def _data_home() -> Path:
+    return Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share")
+
+
+def _config_home() -> Path:
+    return Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+
+
+def paths() -> dict[str, Path]:
+    return {
+        "runner": _data_home() / "krunner/dbusplugins/otprunner.desktop",
+        "dbus": _data_home() / f"dbus-1/services/{BUS_NAME}.service",
+        "systemd": _config_home() / "systemd/user" / UNIT,
+    }
+
+
+def legacy_paths() -> list[Path]:
+    """Restos de la versión antigua (kservices5 + org.kde.otprunner)."""
+    return [
+        _data_home() / "kservices5/otprunner.desktop",
+        _data_home() / "dbus-1/services/otprunner.service",
+    ]
+
+
+def exec_line() -> str:
+    exe = sys.executable
+    if any(c.isspace() for c in exe):
+        raise RuntimeError(f"la ruta del intérprete contiene espacios, no soportado: {exe}")
+    return f"{exe} -m otprunner serve"
+
+
+def has_systemd_user() -> bool:
+    if not shutil.which("systemctl"):
+        return False
+    r = subprocess.run(["systemctl", "--user", "show-environment"], capture_output=True)
+    return r.returncode == 0
+
+
+def match_regex(keywords: list[str]) -> str | None:
+    """Regex que KRunner aplica antes de llamarnos (evita una llamada DBus por tecla)."""
+    if not keywords or not all(re.fullmatch(r"[\w-]+", k) for k in keywords):
+        return None
+    return "(?i)^(" + "|".join(keywords) + ")( .*)?$"
+
+
+def runner_desktop(cfg: config.Config) -> str:
+    lines = [
+        "[Desktop Entry]",
+        "Name=OTP",
+        "Comment=Códigos TOTP del keystore del sistema",
+        "Icon=dialog-password",
+        "Type=Service",
+        "X-KDE-ServiceTypes=Plasma/Runner",
+        "X-KDE-PluginInfo-Name=otprunner",
+        f"X-KDE-PluginInfo-Version={__version__}",
+        "X-KDE-PluginInfo-License=LGPL",
+        "X-KDE-PluginInfo-EnabledByDefault=true",
+        "X-Plasma-API=DBus",
+        "X-Plasma-API-Minimum-Version=2.0",
+        f"X-Plasma-DBusRunner-Service={BUS_NAME}",
+        f"X-Plasma-DBusRunner-Path={OBJECT_PATH}",
+        "X-Plasma-Request-Actions-Once=true",
+    ]
+    rx = match_regex(cfg.keywords)
+    if rx:
+        lines.append(f"X-Plasma-Runner-Match-Regex={rx}")
+    return "\n".join(lines) + "\n"
+
+
+def dbus_service(systemd: bool) -> str:
+    out = f"[D-BUS Service]\nName={BUS_NAME}\nExec={exec_line()}\n"
+    if systemd:
+        out += f"SystemdService={UNIT}\n"
+    return out
+
+
+def systemd_unit() -> str:
+    return f"""[Unit]
+Description=otprunner: códigos TOTP para KRunner
+PartOf=graphical-session.target
+
+[Service]
+Type=dbus
+BusName={BUS_NAME}
+ExecStart={exec_line()}
+Restart=on-failure
+RestartSec=2
+"""
+
+
+def _run(cmd: list[str]) -> None:
+    if shutil.which(cmd[0]):
+        subprocess.run(cmd, capture_output=True)
+
+
+def restart_krunner() -> None:
+    # KRunner se relanza solo por activación DBus la próxima vez que se abre.
+    for q in ("kquitapp6", "kquitapp5"):
+        if shutil.which(q):
+            _run([q, "krunner"])
+            return
+
+
+def install(verbose: bool = True) -> int:
+    cfg = config.load()
+    systemd = has_systemd_user()
+    p = paths()
+    files = {"runner": runner_desktop(cfg), "dbus": dbus_service(systemd)}
+    if systemd:
+        files["systemd"] = systemd_unit()
+    for key, content in files.items():
+        p[key].parent.mkdir(parents=True, exist_ok=True)
+        p[key].write_text(content)
+        if verbose:
+            print(f"escrito: {p[key]}")
+    for old in legacy_paths():
+        if old.exists() and "otprunner" in old.read_text(errors="replace"):
+            old.unlink()
+            if verbose:
+                print(f"borrado (versión antigua): {old}")
+    if systemd:
+        _run(["systemctl", "--user", "daemon-reload"])
+        # Si había una instancia corriendo, que coja el código/config nuevos.
+        _run(["systemctl", "--user", "try-restart", UNIT])
+    restart_krunner()
+    if verbose:
+        kws = " / ".join(cfg.keywords)
+        print(f"\nListo. Abre KRunner y escribe «{kws}».")
+        if systemd:
+            print(f"Logs: journalctl --user -u {UNIT}")
+    return 0
+
+
+def uninstall(verbose: bool = True) -> int:
+    if has_systemd_user():
+        _run(["systemctl", "--user", "stop", UNIT])
+    for f in [*paths().values(), *legacy_paths()]:
+        if f.exists():
+            f.unlink()
+            if verbose:
+                print(f"borrado: {f}")
+    if has_systemd_user():
+        _run(["systemctl", "--user", "daemon-reload"])
+    restart_krunner()
+    if verbose:
+        print("Desinstalado. Los secretos siguen en el keystore.")
+    return 0

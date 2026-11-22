@@ -58,6 +58,11 @@ async def _cmd(args, cfg) -> int:
 
         return await doctor.run()
 
+    if args.cmd == "serve":
+        from . import runner
+
+        return await runner.serve(idle_timeout=args.idle)
+
     async with await open_store(args.backend or cfg.backend) as store:
         if args.cmd == "list":
             accounts = await store.all()
@@ -76,7 +81,21 @@ async def _cmd(args, cfg) -> int:
         if args.cmd == "code":
             accounts = await store.all()
             name = _resolve(accounts, args.name)
-            print(accounts[name].code())
+            acc = accounts[name]
+            code = acc.code()
+            if acc.type == "hotp":
+                await store.put(name, acc.with_counter(acc.counter + 1), replace=True)
+            print(code)
+            if args.copy:
+                from . import clipboard
+                from .dbusutil import session_bus
+
+                bus = await session_bus()
+                try:
+                    provider = await clipboard.copy(code, bus)
+                finally:
+                    bus.disconnect()
+                print(f"copiado al portapapeles ({provider})", file=sys.stderr)
             return 0
 
         if args.cmd == "add":
@@ -146,6 +165,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("code", help="muestra el código de una cuenta")
     s.add_argument("name")
+    s.add_argument("-c", "--copy", action="store_true", help="copiarlo también al portapapeles")
 
     s = sub.add_parser("add", help="añade una cuenta")
     s.add_argument("name", nargs="?", help="nombre (por defecto, issuer:cuenta del QR)")
@@ -168,11 +188,28 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("new")
 
     sub.add_parser("doctor", help="diagnostica el entorno")
+    sub.add_parser("install", help="registra el runner en KRunner (y la unidad systemd de usuario)")
+    sub.add_parser("uninstall", help="deshace install (los secretos se conservan)")
+
+    s = sub.add_parser("serve", help="ejecuta el servicio DBus del runner (lo lanza DBus/systemd)")
+    s.add_argument("-v", "--verbose", action="store_true", help="log de depuración")
+    s.add_argument("--idle", type=float, help="segundos sin uso antes de salir (0 = nunca)")
     return p
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.cmd in ("install", "uninstall"):
+        from . import install
+
+        return install.install() if args.cmd == "install" else install.uninstall()
+    if args.cmd == "serve":
+        import logging
+
+        logging.basicConfig(
+            level=logging.DEBUG if args.verbose else logging.INFO,
+            format="%(levelname)s %(name)s: %(message)s",
+        )
     try:
         return asyncio.run(_cmd(args, config.load()))
     except (StoreError, OtpError, OSError) as e:

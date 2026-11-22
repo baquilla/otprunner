@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "otprunner"
+version = "0.2.0.dev0"
+description = "Gestor de códigos TOTP para KRunner con secretos en el keystore del sistema"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Juan Javier Baca" }]
+dependencies = [
+    "dbus-fast>=2.0",       # DBus asyncio, Python puro: runner, Secret Service, KWallet, portales
+    "pyotp>=2.9",
+    "segno>=1.6",           # generación de QR (export)
+    "zxing-cpp>=2.2",       # lectura de QR desde imagen
+    "pillow>=10",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-asyncio>=0.23"]
+
+[project.scripts]
+otprunner = "otprunner.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/otprunner"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

@@ -1,150 +1,150 @@
 # OTPRunner
 
-Gestor de códigos TOTP integrado en el lanzador del escritorio (KRunner en KDE Plasma),
-con los secretos guardados en el keystore del sistema y CLI equivalente.
+**English** · [Español](README.es.md)
 
-> Estado: en rediseño. Ver [Hoja de ruta](#hoja-de-ruta).
+TOTP codes in your desktop launcher (KRunner on KDE Plasma), with the secrets kept in the
+system keystore and an equivalent command line.
 
-## Características
+> Status: pre-release (0.2.0.dev0).
 
-- Muestra y copia códigos TOTP desde KRunner (`otp <filtro>`) o desde la consola.
-- Secretos en el keystore del sistema, el que haya: en KDE, KWallet (carpeta «otprunner»
-  del monedero); en otros escritorios, Secret Service (GNOME Keyring, KeePassXC).
-  Nunca en ficheros planos.
-- Alta de cuentas sin abrir consola: captura de una zona de pantalla con el QR,
-  portapapeles o cámara.
-- Import y export en formato `otpauth://` y `otpauth-migration://` (Google Authenticator),
-  incluido export como QR para pasar cuentas al móvil.
-- Interfaz en inglés y español: sigue el idioma del escritorio (o `language` en la configuración).
-- Funciona en Plasma 5.27 y 6, X11 y Wayland; usa la herramienta disponible en cada caso
-  (portal XDG, spectacle, Klipper, wl-copy, xclip…). `otprunner doctor` dice qué usa y qué falta.
+## Features
 
-## Uso
+- Search and copy TOTP codes from KRunner (`otp <filter>`) or from the terminal.
+- Secrets live in whatever system keystore is available: on KDE, KWallet (an `otprunner`
+  folder in your wallet); elsewhere, the Secret Service (GNOME Keyring, KeePassXC).
+  Never in plain files.
+- Add accounts without opening a terminal: capture an area of the screen with the QR code,
+  paste from the clipboard, or show it to the camera.
+- Import and export as `otpauth://` and `otpauth-migration://` (Google Authenticator),
+  including export as QR codes to move accounts to your phone.
+- English and Spanish interface: follows the desktop language (or `language` in the config).
+- Works on Plasma 5.27 and 6, X11 and Wayland, using whichever tool is available
+  (XDG portal, spectacle, Klipper, wl-copy, xclip…). `otprunner doctor` shows what it uses
+  and what is missing.
+
+## Usage
 
 ### KRunner
 
-| Escribes | Acción |
+| You type | You get |
 |---|---|
-| `otp` / `otp <filtro>` | Lista códigos; Enter copia el código |
-| `otp add [nombre]` | Captura de pantalla · portapapeles · cámara |
-| `otp export [filtro]` | Muestra QR de migración (pide confirmación) |
-| `otp rm [filtro]` | Borra la cuenta (pide confirmación) |
-| `otp rename [filtro]` | Renombra (pide el nombre nuevo) |
+| `otp` | A search hint and the available commands (no codes) |
+| `otp <filter>` | Accounts containing the text (Enter copies the code) and, at the end, the commands starting with it: `otp re` → rename, remove |
+| `otp add [name]` | Add from a screen capture · the clipboard · the camera |
+| `otp rename [filter]` | Rename (asks for the new name) |
+| `otp remove [filter]` | Remove (asks for confirmation); `rm` works too |
+| `otp export [filter]` | Show migration QR codes for Google Authenticator (asks for confirmation) |
 
-La palabra clave es configurable; `otpr` se acepta como alias.
+KRunner shows at most 15 results: when there are more matches, a “+N more” line appears;
+just type a few more letters. The keyword is configurable; `otpr` is accepted as an alias.
 
-### CLI
+### Command line
 
 ```
-otprunner list [filtro]
-otprunner code <nombre> [--copy]
-otprunner add [nombre] --screen | --camera | --clipboard | --uri URI
-otprunner import <fichero|URI>
-otprunner export [filtro] [--format migration|otpauth] [--qr]
-otprunner rm <nombre>
-otprunner rename <viejo> <nuevo>
+otprunner list [filter]
+otprunner code <name> [--copy]
+otprunner add [name] --screen | --camera | --clipboard | --uri URI
+otprunner import <file|URI>
+otprunner export [filter] [--format migration|otpauth] [--qr]
+otprunner remove <name>          (alias: rm)
+otprunner rename <old> <new>
 otprunner install | uninstall | doctor
 ```
 
-## Instalación
+## Installation
 
 ```bash
-pipx install .        # o: uv tool install .
-otprunner install     # registra el runner en KRunner y la unidad systemd de usuario
-otprunner doctor      # comprueba keystore, portapapeles, captura, etc.
+pipx install .        # or: uv tool install .
+otprunner install     # registers the KRunner plugin, the systemd user unit and the icon
+otprunner doctor      # checks keystore, clipboard, screen capture, etc.
 ```
 
-`otprunner uninstall` deshace lo anterior. Los secretos permanecen en el keystore.
+`otprunner uninstall` undoes it. The secrets stay in the keystore.
 
-### Dependencias del sistema (opcionales, según escritorio)
+### System dependencies (optional, depending on the desktop)
 
-- Captura de pantalla: portal XDG (normalmente ya presente), o `spectacle` / `gnome-screenshot` / `maim`.
-- Portapapeles: Klipper (KDE), o `wl-clipboard` (Wayland) / `xclip` (X11).
-- Confirmaciones: `kdialog` o `zenity`.
-- Cámara: `zbar-tools` (`zbarcam`), o bien `pipx inject otprunner opencv-python`.
-  Con una exportación de Google en varios QR, la cámara sigue abierta hasta leerlos todos.
+- Screen capture: XDG portal (usually present), or `spectacle` / `gnome-screenshot` / `maim`.
+- Clipboard: Klipper (KDE), or `wl-clipboard` (Wayland) / `xclip` (X11).
+- Confirmation dialogs: `kdialog` or `zenity`.
+- Camera: `zbar-tools` (`zbarcam`), or `pipx inject otprunner opencv-python`.
+  With a Google export split into several QR codes, the camera stays open until it has read them all.
 
-## Configuración
+## Configuration
 
-Opcional, en `~/.config/otprunner/config.toml` (tras cambiar `keywords`, repite `otprunner install`):
+Optional, in `~/.config/otprunner/config.toml` (after changing `keywords`, run `otprunner install` again):
 
 ```toml
-backend = "auto"            # auto (KWallet si existe, si no Secret Service) | kwallet | secretservice
-keywords = ["otp", "otpr"]  # palabras clave en KRunner
-idle_timeout = 600          # segundos sin uso antes de cerrar el servicio (0 = nunca)
+backend = "auto"            # auto (KWallet if present, otherwise Secret Service) | kwallet | secretservice
+keywords = ["otp", "otpr"]  # KRunner keywords
+idle_timeout = 600          # idle seconds before the service exits (0 = never)
 show_codes = "selected"     # selected | always | never
-camera = "/dev/video0"      # opcional: dispositivo de la cámara
-language = "es"             # opcional: idioma de la interfaz (por defecto, el del escritorio)
+camera = "/dev/video0"      # optional: camera device
+language = "es"             # optional: interface language (default: the desktop's)
 ```
 
 `show_codes`:
-- `selected` (por defecto): el código va en el subtítulo, que KRunner (Plasma 5) solo muestra
-  en la línea seleccionada; así no se ven todos a la vez.
-- `always`: código en el título, siempre visible, con su hora de caducidad y el siguiente.
-- `never`: no se muestra; Enter lo copia.
+- `selected` (default): the code goes in the subtitle, which KRunner (Plasma 5) only shows on
+  the selected line, so they are not all visible at once.
+- `always`: the code in the title, always visible, with its expiry time and the next code.
+- `never`: not shown; Enter copies it.
 
-KRunner no refresca los resultados hasta que cambia la búsqueda; Enter copia siempre el código vigente.
+KRunner does not refresh results until the query changes; Enter always copies the current code.
 
-## Cómo funciona
+## How it works
 
-- KRunner habla con el runner por DBus (`org.kde.krunner1`). El servicio se activa por DBus,
-  que delega en una unidad systemd de usuario: logs en `journalctl --user -u otprunner`.
-- El servicio cachea las cuentas durante la sesión de KRunner y se cierra tras
-  `idle_timeout` segundos sin uso: los secretos no se quedan en memoria indefinidamente.
-- Cada cuenta guarda la URI `otpauth://` completa. En KWallet, como una entrada de la
-  carpeta `otprunner` del monedero; en Secret Service, como un item con atributos
-  `application=otprunner` y `account=<nombre>`.
+- KRunner talks to the runner over DBus (`org.kde.krunner1`). The service is DBus-activated
+  through a systemd user unit: logs in `journalctl --user -u otprunner`.
+- The service caches the accounts during the KRunner session and exits after `idle_timeout`
+  idle seconds, so the secrets do not stay in memory indefinitely.
+- Each account stores the full `otpauth://` URI. In KWallet, as an entry in the wallet's
+  `otprunner` folder; in the Secret Service, as an item with the attributes
+  `application=otprunner` and `account=<name>`.
+- Images containing secrets (captures, export QR codes) are written to
+  `$XDG_RUNTIME_DIR/otprunner` (in memory, mode 0700) and always deleted.
 
-## Icono
+## Icon
 
-<img src="src/otprunner/data/otprunner.svg" width="64" alt="icono de OTPRunner">
+<img src="src/otprunner/data/otprunner.svg" width="64" alt="OTPRunner icon">
 
-- **Qué representa**: un anillo de cuenta atrás alrededor de una bocallave. Junta los dos
-  elementos de un TOTP: un secreto que solo tú tienes y un código que caduca. El tramo
-  abierto del anillo es el tiempo ya consumido de los 30 s.
-- **Por qué no un candado o un escudo**: son los iconos genéricos de gestor de contraseñas;
-  OTPRunner no guarda contraseñas, da códigos efímeros.
-- **Estilo**: plano, en el azul de Breeze (`#3daee9`) con un degradado suave, y una retícula
-  de 128 px con márgenes de 8 px, como los iconos de aplicación de Plasma. Solo blanco sobre
-  azul: contrasta igual en temas claros y oscuros.
-- **Tamaños pequeños**: a 16 y 22 px (KRunner, bandeja, notificaciones) se usa una versión
-  dibujada sobre una retícula de 16 px: anillo más grueso, sin pista de fondo y bocallave
-  más grande, para que no se empaste.
-- **Nombre**: *OTPRunner* en lo visible (KRunner, notificaciones, diálogos); `otprunner`
-  en lo técnico (comando, paquete, ficheros, DBus), que se escribe en minúsculas.
-- **Dónde se usa**: plugin y resultados de KRunner, y notificaciones. Las acciones (añadir,
-  borrar, exportar…) conservan los iconos estándar del tema, que ya dicen qué hacen.
+- **What it shows**: a countdown ring around a keyhole — the two parts of a TOTP: a secret
+  only you hold and a code that expires. The open stretch of the ring is the part of the
+  30 s already gone.
+- **Why not a padlock or a shield**: those are the generic password-manager icons;
+  OTPRunner does not store passwords, it hands out short-lived codes.
+- **Style**: flat, in Breeze blue (`#3daee9`) with a soft gradient, on a 128 px grid with
+  8 px margins like Plasma application icons. White on blue only, so it reads the same on
+  light and dark themes.
+- **Small sizes**: at 16 and 22 px (KRunner, tray, notifications) a version drawn on a 16 px
+  grid is used: thicker ring, no background track and a larger keyhole, so it stays crisp.
+- **Name**: *OTPRunner* wherever it is visible (KRunner, notifications, dialogs); `otprunner`,
+  lowercase, for technical identifiers (command, package, files, DBus).
+- **Where it is used**: the KRunner plugin and results, and notifications. Actions (add,
+  remove, export…) keep the theme's standard icons, which already say what they do.
 
-## Desarrollo
+## Development
 
 ```bash
 uv venv && uv pip install -e '.[dev]'
 pytest
 ```
 
-Traducciones (gettext; el inglés es el idioma fuente, catálogos en `src/otprunner/locale/`):
+Translations (gettext; English is the source language, catalogs in `src/otprunner/locale/`):
 
 ```bash
-scripts/i18n.sh update     # tras cambiar textos: extrae y actualiza los .po
-scripts/i18n.sh init fr    # idioma nuevo
-scripts/i18n.sh compile    # genera los .mo (van en el paquete)
+scripts/i18n.sh update     # after changing strings: extract and update the .po files
+scripts/i18n.sh init fr    # new language
+scripts/i18n.sh compile    # build the .mo files (shipped in the package)
 ```
 
-Los tests fallan si queda alguna cadena sin traducir o un `.mo` desactualizado.
+Tests fail if a string is left untranslated or a `.mo` file is out of date.
 
-Para depurar el runner: `systemctl --user stop otprunner` y lanzar `otprunner serve -v`
-en una terminal; KRunner hablará con ese proceso.
+To debug the runner: `systemctl --user stop otprunner` and run `otprunner serve -v` in a
+terminal; KRunner will talk to that process.
 
-Referencias recopiladas: [docs/referencias.md](docs/referencias.md).
-Proyectos similares y plan de publicación: [docs/publicacion.md](docs/publicacion.md).
+Background notes (in Spanish): [references](docs/referencias.md),
+[similar projects and publishing plan](docs/publicacion.md).
 
-## Hoja de ruta
+## Roadmap
 
-0. ~~Limpieza del repo~~
-1. ~~Núcleo: modelo `otpauth`, códec `otpauth-migration`, keystores, `doctor`~~
-2. ~~Runner DBus (`list`/copiar), unidad systemd, `install`~~
-3. ~~`add` por captura de pantalla y portapapeles; `import`~~
-4. ~~`export` (QR/URI), `rm`, `rename`~~
-5. ~~Cámara (varios proveedores)~~
-6. (Opcional) Frontend GNOME Shell search provider
-7. Publicación: PyPI → KDE Store → Flathub (ver [docs/publicacion.md](docs/publicacion.md))
+- Publishing: PyPI → KDE Store → Flathub (see [docs/publicacion.md](docs/publicacion.md)).
+- (Optional) GNOME Shell search integration.

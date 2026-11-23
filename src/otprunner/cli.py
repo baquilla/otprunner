@@ -158,15 +158,15 @@ async def _cmd(args, cfg) -> int:
                     print(uri)
             return 0 if exp.uris else 1
 
-        if args.cmd == "rm":
+        if args.cmd in ("remove", "rm"):
             name = _resolve(await store.names(), args.name)
             if not args.yes:
-                ans = input(_("Delete “{name}”? [y/N] ").format(name=name)).strip().lower()
+                ans = input(_("Remove “{name}”? [y/N] ").format(name=name)).strip().lower()
                 if ans not in ("y", "yes", _("y"), _("yes")):
                     print(_("cancelled"))
                     return 1
             await store.delete(name)
-            print(_("deleted: {name}").format(name=name))
+            print(_("removed: {name}").format(name=name))
             return 0
 
         if args.cmd == "rename":
@@ -208,7 +208,7 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--batch", type=int, default=migration.DEFAULT_BATCH, help=_("accounts per migration URI"))
     s.add_argument("--qr", action="store_true", help=_("show as QR codes in the terminal"))
 
-    s = sub.add_parser("rm", help=_("delete an account"))
+    s = sub.add_parser("remove", aliases=["rm"], help=_("remove an account"))
     s.add_argument("name")
     s.add_argument("-y", "--yes", action="store_true", help=_("do not ask for confirmation"))
 

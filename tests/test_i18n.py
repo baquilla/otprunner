@@ -22,17 +22,17 @@ def _env(monkeypatch, **env):
 
 
 @pytest.mark.parametrize("env,expected", [
-    ({"LANGUAGE": "en_US:es", "LANG": "en_US.UTF-8"}, "Delete"),   # inglés preferido, aunque haya «es» después
+    ({"LANGUAGE": "en_US:es", "LANG": "en_US.UTF-8"}, "Remove"),   # inglés preferido, aunque haya «es» después
     ({"LANGUAGE": "es_ES:en", "LANG": "en_US.UTF-8"}, "Borrar"),
     ({"LANG": "es_ES.UTF-8"}, "Borrar"),
     ({"LANGUAGE": "fr:es"}, "Borrar"),                            # sin catálogo fr: siguiente de la lista
-    ({"LANG": "C"}, "Delete"),
-    ({}, "Delete"),
+    ({"LANG": "C"}, "Remove"),
+    ({}, "Remove"),
 ])
 def test_language_selection(monkeypatch, env, expected):
     _env(monkeypatch, **env)
     i18n.setup()
-    assert i18n._("Delete") == expected
+    assert i18n._("Remove") == expected
 
 
 def test_config_language_overrides_env(monkeypatch, tmp_path):
@@ -40,7 +40,7 @@ def test_config_language_overrides_env(monkeypatch, tmp_path):
     p = tmp_path / "c.toml"
     p.write_text('language = "es"')
     i18n.setup(config.load(p).language)
-    assert i18n._("Delete") == "Borrar"
+    assert i18n._("Remove") == "Borrar"
     assert i18n.ngettext("{n} secret", "{n} secrets", 2).format(n=2) == "2 secretos"
 
 
@@ -80,6 +80,7 @@ async def test_runner_in_spanish():
 
     r = runner.Runner(config.Config(), factory)
     assert [m[1] for m in await r.match("otp rm git")] == ["Borrar «GitHub:yo»"]
+    assert "1 cuenta" in (await r.match("otp"))[0][1]
     assert (await r.match("otp export"))[0][1] == "Exportar 1 cuenta como QR para Google Authenticator"
     assert (await r.match("otp zzz"))[0][1] == "Ninguna cuenta coincide con «zzz»"
 

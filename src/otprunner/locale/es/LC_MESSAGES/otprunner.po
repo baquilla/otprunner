@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OTPRunner VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 00:18+0000\n"
+"POT-Creation-Date: 2026-11-23 00:26+0000\n"
 "PO-Revision-Date: 2026-11-23 00:17+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: es\n"
@@ -25,6 +25,15 @@ msgstr "(no existe, valores por defecto)"
 msgid "(“{wanted}” already existed, saved as “{final}”)"
 msgstr "(«{wanted}» ya existía, guardada como «{final}»)"
 
+#, python-brace-format
+msgid "+{n} more: type more letters to narrow it down"
+msgid_plural "+{n} more: type more letters to narrow it down"
+msgstr[0] "+{n} más: escribe más letras para acotar"
+msgstr[1] "+{n} más: escribe más letras para acotar"
+
+msgid "Add an account"
+msgstr "Añadir una cuenta"
+
 msgid "Add an account from a QR code on screen"
 msgstr "Añadir cuenta desde un QR en pantalla"
 
@@ -33,9 +42,6 @@ msgstr "Añadir cuenta desde el portapapeles"
 
 msgid "Add an account with the camera"
 msgstr "Añadir cuenta con la cámara"
-
-msgid "Add an account…"
-msgstr "Añadir una cuenta…"
 
 #, python-brace-format
 msgid "Add “{name}” from a QR code on screen"
@@ -99,31 +105,6 @@ msgstr "Continuar"
 msgid "Could not add the account"
 msgstr "No se pudo añadir la cuenta"
 
-msgid "Delete"
-msgstr "Borrar"
-
-#, python-brace-format
-msgid ""
-"Delete the account “{name}”?\n"
-"\n"
-"This cannot be undone: make sure you have another way to sign in."
-msgstr ""
-"¿Borrar la cuenta «{name}»?\n"
-"\n"
-"No se puede deshacer: asegúrate de tener otra forma de acceder."
-
-#, python-brace-format
-msgid "Delete “{name}”"
-msgstr "Borrar «{name}»"
-
-#, python-brace-format
-msgid "Delete “{name}”? [y/N] "
-msgstr "¿Borrar «{name}»? [s/N] "
-
-#, python-brace-format
-msgid "Deleted: {name}"
-msgstr "Borrada: {name}"
-
 msgid "Desktop"
 msgstr "Escritorio"
 
@@ -136,6 +117,9 @@ msgstr "Listo. Abre KRunner y escribe «{keywords}»."
 
 msgid "Enter copies the code"
 msgstr "Enter copia el código"
+
+msgid "Export accounts as QR codes"
+msgstr "Exportar cuentas como códigos QR"
 
 #, python-brace-format
 msgid "Export {n} account as a QR code for Google Authenticator"
@@ -214,6 +198,37 @@ msgstr "QR enseñado a la cámara"
 msgid "QR {i} of {n}"
 msgstr "QR {i} de {n}"
 
+msgid "Remove"
+msgstr "Borrar"
+
+msgid "Remove an account"
+msgstr "Borrar una cuenta"
+
+#, python-brace-format
+msgid ""
+"Remove the account “{name}”?\n"
+"\n"
+"This cannot be undone: make sure you have another way to sign in."
+msgstr ""
+"¿Borrar la cuenta «{name}»?\n"
+"\n"
+"No se puede deshacer: asegúrate de tener otra forma de acceder."
+
+#, python-brace-format
+msgid "Remove “{name}”"
+msgstr "Borrar «{name}»"
+
+#, python-brace-format
+msgid "Remove “{name}”? [y/N] "
+msgstr "¿Borrar «{name}»? [s/N] "
+
+#, python-brace-format
+msgid "Removed: {name}"
+msgstr "Borrada: {name}"
+
+msgid "Rename an account"
+msgstr "Renombrar una cuenta"
+
 #, python-brace-format
 msgid "Rename “{name}”…"
 msgstr "Renombrar «{name}»…"
@@ -263,6 +278,12 @@ msgstr "Códigos TOTP del keystore del sistema"
 msgid "The URI with the secret is still in the Klipper history: delete it from its menu."
 msgstr "La URI con el secreto sigue en el historial de Klipper: bórrala desde su menú."
 
+#, python-brace-format
+msgid "Type to search your {n} account"
+msgid_plural "Type to search your {n} accounts"
+msgstr[0] "Escribe para buscar en tu {n} cuenta"
+msgstr[1] "Escribe para buscar entre tus {n} cuentas"
+
 msgid "URI or QR image from the clipboard"
 msgstr "URI o imagen QR del portapapeles"
 
@@ -309,13 +330,6 @@ msgstr "data no es base64 válido: {error}"
 
 msgid "debug logging"
 msgstr "log de depuración"
-
-msgid "delete an account"
-msgstr "borra una cuenta"
-
-#, python-brace-format
-msgid "deleted: {name}"
-msgstr "borrada: {name}"
 
 msgid "diagnose the environment"
 msgstr "diagnostica el entorno"
@@ -489,9 +503,16 @@ msgstr "protobuf: wire type {type} no soportado"
 msgid "register the runner in KRunner (and the systemd user unit)"
 msgstr "registra el runner en KRunner (y la unidad systemd de usuario)"
 
+msgid "remove an account"
+msgstr "borra una cuenta"
+
 #, python-brace-format
 msgid "removed (old version): {path}"
 msgstr "borrado (versión antigua): {path}"
+
+#, python-brace-format
+msgid "removed: {name}"
+msgstr "borrada: {name}"
 
 #, python-brace-format
 msgid "removed: {path}"
@@ -625,6 +646,26 @@ msgstr "{app}: enseña el QR a la cámara (Esc o cerrar para cancelar)"
 #, python-brace-format
 msgid "{current} (available: {langs})"
 msgstr "{current} (disponibles: {langs})"
+
+#, python-brace-format
+msgid "{keyword} <filter>"
+msgstr "{keyword} <filtro>"
+
+#, python-brace-format
+msgid "{keyword} add [name]  ·  from the screen, the clipboard or the camera"
+msgstr "{keyword} add [nombre]  ·  desde la pantalla, el portapapeles o la cámara"
+
+#, python-brace-format
+msgid "{keyword} export [filter]"
+msgstr "{keyword} export [filtro]"
+
+#, python-brace-format
+msgid "{keyword} remove [filter]"
+msgstr "{keyword} remove [filtro]"
+
+#, python-brace-format
+msgid "{keyword} rename [filter]"
+msgstr "{keyword} rename [filtro]"
 
 #, python-brace-format
 msgid "{name}: otpauth-migration only supports 6 or 8 digits"

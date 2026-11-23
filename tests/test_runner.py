@@ -38,9 +38,9 @@ async def test_match_filters_and_formats(store):
     code, name = text.split("   ")
     assert len(code) == 7 and name == "PayPal:bob" and typ == runner.EXACT
     assert props["subtext"].startswith("valid until ") and "next: " in props["subtext"]
-    ms = await r.match("otp")
-    assert {m[0].split(runner.SEP)[1] for m in ms if m[0].startswith("code")} == {"GitHub:alice", "PayPal:bob", "hotp"}
-    assert ms[-1][0] == f"query{runner.SEP}otp add "  # entrada de ayuda al final
+    ms = await r.match("otp a")
+    assert {m[0].split(runner.SEP)[1] for m in ms if m[0].startswith("code")} == {"GitHub:alice", "PayPal:bob"}
+    assert ms[-1][0] == f"query{runner.SEP}otp add "  # comando sugerido al final
     assert (await r.match("otp zzz"))[0][0] == "none"
 
 
@@ -59,7 +59,7 @@ async def test_cache_and_forget(store):
     store.data.clear()
     assert len(await r.match("otp pay")) == 1  # cacheado
     r.forget()
-    assert (await r.match("otp"))[0][0] == "none"
+    assert (await r.match("otp pay"))[0][0] == "none"
 
 
 async def test_run_copies_and_advances_hotp(store, monkeypatch):
@@ -120,7 +120,7 @@ async def test_run_add_from_screen(store, monkeypatch):
     r = make(store)
     await r.match("otp")  # llena la caché
     await r.run(f"add{runner.SEP}screen{runner.SEP}", "")
-    names = [m[0].split(runner.SEP)[1] for m in await r.match("otp X:")]
+    names = [m[0].split(runner.SEP)[1] for m in await r.match("otp X:") if m[0].startswith("code")]
     assert names == ["X:n1", "X:n2"]  # la caché se invalidó
 
 
@@ -138,7 +138,8 @@ async def test_run_add_cancelled_is_silent(store, monkeypatch):
 async def test_manage_matches(store):
     r = make(store)
     ms = await r.match("otp rm git")
-    assert [m[0] for m in ms] == [f"rm{runner.SEP}GitHub:alice"] and "Delete" in ms[0][1]
+    assert [m[0] for m in ms] == [f"remove{runner.SEP}GitHub:alice"] and "Remove" in ms[0][1]
+    assert [m[0] for m in await r.match("otp remove git")] == [f"remove{runner.SEP}GitHub:alice"]
     ms = await r.match("otp rename")
     assert len(ms) == 3 and all(m[0].startswith("rename") for m in ms)
     (m,) = await r.match("otp export pay")
@@ -160,10 +161,10 @@ async def test_run_rm_rename_with_dialogs(store, monkeypatch):
     monkeypatch.setattr(dialogs, "confirm", confirm)
     monkeypatch.setattr(dialogs, "ask_text", ask_text)
     r = make(store)
-    await r.run(f"rm{runner.SEP}hotp", "")
+    await r.run(f"remove{runner.SEP}hotp", "")
     assert "hotp" in store.data  # cancelado
     answers["confirm"] = True
-    await r.run(f"rm{runner.SEP}hotp", "")
+    await r.run(f"remove{runner.SEP}hotp", "")
     assert "hotp" not in store.data
     await r.run(f"rename{runner.SEP}PayPal:bob", "")
     assert "Nuevo" in store.data and "PayPal:bob" not in store.data
@@ -189,3 +190,34 @@ async def test_run_export_shows_and_deletes(store, monkeypatch, tmp_path):
 
     assert len(shown) == 1 and len(migration.decode(shown[0]).accounts) == 3
     assert list(tmp_path.iterdir()) == []
+
+
+def _ids(ms):
+    return [m[0] for m in ms]
+
+
+async def test_empty_query_shows_commands_only(store):
+    ms = await make(store).match("otp")
+    assert not any(i.startswith("code") for i in _ids(ms))
+    assert "3 accounts" in ms[0][1]
+    assert _ids(ms)[1:] == [f"query{runner.SEP}otp {c} " for c in ("add", "rename", "remove", "export")]
+
+
+async def test_prefix_suggests_commands_after_accounts(store):
+    ms = await make(store).match("otp re")
+    assert _ids(ms) == ["none", f"query{runner.SEP}otp rename ", f"query{runner.SEP}otp remove "]  # ninguna con «re»
+    ms = await make(store).match("otp h")
+    assert _ids(ms)[0] == f"code{runner.SEP}GitHub:alice" and _ids(ms)[-1] != f"query{runner.SEP}otp add "
+
+
+async def test_result_limit_keeps_commands_visible():
+    s = MemoryStore()
+    for i in range(30):
+        await s.put(f"acc{i:02d}a", Account(secret=bytes([i + 1]) * 10, name=f"a{i}"))
+    r = make(s)
+    ms = await r.match("otp a")
+    assert len(ms) == runner.MAX_RESULTS
+    assert ms[-1][0] == f"query{runner.SEP}otp add "
+    assert "+17 more" in ms[-2][1] and ms[-2][0] == f"query{runner.SEP}otp a"
+    ms = await r.match("otp remove")
+    assert len(ms) == runner.MAX_RESULTS and "+16 more" in ms[-1][1]

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OTPRunner VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 00:18+0000\n"
+"POT-Creation-Date: 2026-11-23 00:26+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,6 +24,15 @@ msgstr ""
 msgid "(“{wanted}” already existed, saved as “{final}”)"
 msgstr ""
 
+#, python-brace-format
+msgid "+{n} more: type more letters to narrow it down"
+msgid_plural "+{n} more: type more letters to narrow it down"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Add an account"
+msgstr ""
+
 msgid "Add an account from a QR code on screen"
 msgstr ""
 
@@ -31,9 +40,6 @@ msgid "Add an account from the clipboard"
 msgstr ""
 
 msgid "Add an account with the camera"
-msgstr ""
-
-msgid "Add an account…"
 msgstr ""
 
 #, python-brace-format
@@ -98,28 +104,6 @@ msgstr ""
 msgid "Could not add the account"
 msgstr ""
 
-msgid "Delete"
-msgstr ""
-
-#, python-brace-format
-msgid ""
-"Delete the account “{name}”?\n"
-"\n"
-"This cannot be undone: make sure you have another way to sign in."
-msgstr ""
-
-#, python-brace-format
-msgid "Delete “{name}”"
-msgstr ""
-
-#, python-brace-format
-msgid "Delete “{name}”? [y/N] "
-msgstr ""
-
-#, python-brace-format
-msgid "Deleted: {name}"
-msgstr ""
-
 msgid "Desktop"
 msgstr ""
 
@@ -131,6 +115,9 @@ msgid "Done. Open KRunner and type “{keywords}”."
 msgstr ""
 
 msgid "Enter copies the code"
+msgstr ""
+
+msgid "Export accounts as QR codes"
 msgstr ""
 
 #, python-brace-format
@@ -210,6 +197,34 @@ msgstr ""
 msgid "QR {i} of {n}"
 msgstr ""
 
+msgid "Remove"
+msgstr ""
+
+msgid "Remove an account"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"Remove the account “{name}”?\n"
+"\n"
+"This cannot be undone: make sure you have another way to sign in."
+msgstr ""
+
+#, python-brace-format
+msgid "Remove “{name}”"
+msgstr ""
+
+#, python-brace-format
+msgid "Remove “{name}”? [y/N] "
+msgstr ""
+
+#, python-brace-format
+msgid "Removed: {name}"
+msgstr ""
+
+msgid "Rename an account"
+msgstr ""
+
 #, python-brace-format
 msgid "Rename “{name}”…"
 msgstr ""
@@ -261,6 +276,12 @@ msgid ""
 "its menu."
 msgstr ""
 
+#, python-brace-format
+msgid "Type to search your {n} account"
+msgid_plural "Type to search your {n} accounts"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "URI or QR image from the clipboard"
 msgstr ""
 
@@ -306,13 +327,6 @@ msgid "data is not valid base64: {error}"
 msgstr ""
 
 msgid "debug logging"
-msgstr ""
-
-msgid "delete an account"
-msgstr ""
-
-#, python-brace-format
-msgid "deleted: {name}"
 msgstr ""
 
 msgid "diagnose the environment"
@@ -487,8 +501,15 @@ msgstr ""
 msgid "register the runner in KRunner (and the systemd user unit)"
 msgstr ""
 
+msgid "remove an account"
+msgstr ""
+
 #, python-brace-format
 msgid "removed (old version): {path}"
+msgstr ""
+
+#, python-brace-format
+msgid "removed: {name}"
 msgstr ""
 
 #, python-brace-format
@@ -622,6 +643,26 @@ msgstr ""
 
 #, python-brace-format
 msgid "{current} (available: {langs})"
+msgstr ""
+
+#, python-brace-format
+msgid "{keyword} <filter>"
+msgstr ""
+
+#, python-brace-format
+msgid "{keyword} add [name]  ·  from the screen, the clipboard or the camera"
+msgstr ""
+
+#, python-brace-format
+msgid "{keyword} export [filter]"
+msgstr ""
+
+#, python-brace-format
+msgid "{keyword} remove [filter]"
+msgstr ""
+
+#, python-brace-format
+msgid "{keyword} rename [filter]"
 msgstr ""
 
 #, python-brace-format

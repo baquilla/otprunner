@@ -30,6 +30,12 @@ OBJECT_PATH = "/runner"
 # Plasma::QueryMatch::Type
 EXACT, POSSIBLE, INFORMATIONAL = 100, 30, 50
 SEP = "\x1f"
+# KRunner (Milou) muestra como mucho 15 resultados: recortamos nosotros para que los
+# comandos y el aviso de «hay más» no se queden fuera.
+MAX_RESULTS = 15
+# Subcomandos en el orden en que se sugieren; «rm» es alias de «remove».
+COMMANDS = ("add", "rename", "remove", "export")
+ALIASES = {"rm": "remove"}
 
 
 def fmt_code(code: str) -> str:
@@ -107,14 +113,19 @@ class Runner:
         except (StoreError, OtpError) as e:
             return [("error", f"{APP_NAME}: {e}", "dialog-error", INFORMATIONAL, 1.0, {"subtext": _("Keystore")})]
         cmd, _sep, arg = flt.partition(" ")
-        if cmd.casefold() == "add":
+        cmd = ALIASES.get(cmd.casefold(), cmd.casefold())
+        if cmd == "add":
             return self._add_matches(arg.strip())
-        if cmd.casefold() in ("export", "rm", "rename"):
-            return self._manage_matches(cmd.casefold(), arg.strip(), accounts)
+        if cmd in ("export", "remove", "rename"):
+            return self._manage_matches(cmd, arg.strip(), accounts)
+        if not flt:
+            return [self._search_hint(len(accounts)), *self._command_matches(COMMANDS)]
         f = flt.casefold()
         names = [n for n in accounts if f in n.casefold()]
+        cmds = [c for c in COMMANDS if c.startswith(f)]
         if not names:
-            return [self._no_match(accounts, flt), self._helper("add", _("Add an account…"), "list-add")]
+            return [self._no_match(accounts, flt), *self._command_matches(cmds or ["add"])]
+        names, more = self._fit(names, MAX_RESULTS - len(cmds))
         now = time.time()
         out = []
         for i, name in enumerate(names):
@@ -139,15 +150,46 @@ class Runner:
             relevance = 1.0 if exact else max(0.5, 0.99 - i * 0.001)
             out.append((f"code{SEP}{name}", text, ICON, EXACT, relevance,
                         {"subtext": sub, "category": "OTP"}))
-        if not f:
-            out.append(self._helper("add", _("Add an account…"), "list-add"))
-        return out
+        return out + self._more(more, flt) + self._command_matches(cmds)
 
-    def _helper(self, sub: str, text: str, icon: str) -> tuple:
-        """Entrada que completa la consulta en KRunner (p. ej. «otp add »)."""
+    # --- ayudas de navegación ---------------------------------------------------
+    @staticmethod
+    def _fit(names: list[str], slots: int) -> tuple[list[str], int]:
+        """Recorta a ``slots`` entradas, reservando una para «+N más» si hace falta."""
+        if len(names) <= slots:
+            return names, 0
+        keep = max(1, slots - 1)
+        return names[:keep], len(names) - keep
+
+    def _more(self, more: int, flt: str) -> list:
+        if not more:
+            return []
+        text = ngettext("+{n} more: type more letters to narrow it down",
+                        "+{n} more: type more letters to narrow it down", more).format(n=more)
+        return [(f"query{SEP}{self.cfg.keywords[0]} {flt}", text, "go-down-search", EXACT, 0.4,
+                 {"category": "OTP"})]
+
+    def _search_hint(self, n: int) -> tuple:
         kw = self.cfg.keywords[0]
-        return (f"query{SEP}{kw} {sub} ", text, icon, POSSIBLE, 0.1,
-                {"subtext": f"{kw} add  ·  {kw} export  ·  {kw} rename  ·  {kw} rm", "category": "OTP"})
+        text = ngettext("Type to search your {n} account", "Type to search your {n} accounts", n).format(n=n)
+        return (f"query{SEP}{kw} ", text, "search", EXACT, 0.5,
+                {"subtext": _("{keyword} <filter>").format(keyword=kw), "category": "OTP"})
+
+    def _command_matches(self, cmds) -> list:
+        """Sugerencias de subcomando; al elegirlas, KRunner se reabre con «otp <cmd> »."""
+        kw = self.cfg.keywords[0]
+        info = {
+            "add": (_("Add an account"), "list-add", _("{keyword} add [name]  ·  from the screen, the clipboard or the camera")),
+            "rename": (_("Rename an account"), "edit-rename", _("{keyword} rename [filter]")),
+            "remove": (_("Remove an account"), "edit-delete", _("{keyword} remove [filter]")),
+            "export": (_("Export accounts as QR codes"), "document-export", _("{keyword} export [filter]")),
+        }
+        out = []
+        for j, c in enumerate(cmds):
+            text, icon, sub = info[c]
+            out.append((f"query{SEP}{kw} {c} ", text, icon, EXACT, 0.3 - j * 0.01,
+                        {"subtext": sub.format(keyword=kw), "category": "OTP"}))
+        return out
 
     def _manage_matches(self, cmd: str, flt: str, accounts: dict) -> list:
         f = flt.casefold()
@@ -162,25 +204,26 @@ class Runner:
             if not flt:
                 sub += "  ·  " + _("filter with: {keyword} export <text>").format(keyword=self.cfg.keywords[0])
             return [(f"export{SEP}{flt}", text, "document-export", EXACT, 1.0, {"subtext": sub, "category": "OTP"})]
-        if cmd == "rm":
-            label, icon, sub = _("Delete “{name}”"), "edit-delete", _("Asks for confirmation")
+        if cmd == "remove":
+            label, icon, sub = _("Remove “{name}”"), "edit-delete", _("Asks for confirmation")
         else:
             label, icon, sub = _("Rename “{name}”…"), "edit-rename", _("Asks for the new name")
+        names, more = self._fit(names, MAX_RESULTS)
         return [(f"{cmd}{SEP}{n}", label.format(name=n), icon, EXACT, max(0.5, 0.99 - i * 0.001),
                  {"subtext": sub, "category": "OTP"})
-                for i, n in enumerate(names[:20])]
+                for i, n in enumerate(names)] + self._more(more, f"{cmd} {flt}".strip())
 
     async def _manage(self, cmd: str, arg: str) -> None:
         try:
             store = await self._get_store()
             if cmd == "export":
                 await self._export(arg)
-            elif cmd == "rm":
-                text = _("Delete the account “{name}”?\n\nThis cannot be undone: make sure you have "
+            elif cmd == "remove":
+                text = _("Remove the account “{name}”?\n\nThis cannot be undone: make sure you have "
                          "another way to sign in.").format(name=arg)
-                if await dialogs.confirm(APP_NAME, text, ok_label=_("Delete")):
+                if await dialogs.confirm(APP_NAME, text, ok_label=_("Remove")):
                     if await store.delete(arg):
-                        await notify(self.bus, _("Deleted: {name}").format(name=arg))
+                        await notify(self.bus, _("Removed: {name}").format(name=arg))
             elif cmd == "rename":
                 new = await dialogs.ask_text(APP_NAME, _("New name for “{name}”:").format(name=arg), arg)
                 if new and new != arg:
@@ -289,7 +332,7 @@ class Runner:
             source, _sep, acc_name = name.partition(SEP)
             await self._add(source, acc_name)
             return
-        if kind in ("export", "rm", "rename"):
+        if kind in ("export", "remove", "rename"):
             await self._manage(kind, name)
             return
         if kind != "code":

@@ -36,7 +36,7 @@ async def run() -> int:
     try:
         # --- keystore --------------------------------------------------------
         print(f"Keystore (backend = {cfg.backend})")
-        impl = {"secretservice": secretservice.SecretServiceStore, "kwallet": kwallet.KWalletStore}
+        impl = {"secretservice": secretservice.SecretServiceStore, "kwallet": kwallet.KWalletStore}  # orden: BACKENDS
         chosen = None
         for name in BACKENDS:
             try:

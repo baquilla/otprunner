@@ -8,8 +8,9 @@ con los secretos guardados en el keystore del sistema y CLI equivalente.
 ## Características
 
 - Muestra y copia códigos TOTP desde KRunner (`otp <filtro>`) o desde la consola.
-- Secretos en el keystore del sistema, el que haya: Secret Service (GNOME Keyring,
-  KeePassXC, KWallet ≥ KF 5.97) o KWallet nativo. Nunca en ficheros planos.
+- Secretos en el keystore del sistema, el que haya: en KDE, KWallet (carpeta «otprunner»
+  del monedero); en otros escritorios, Secret Service (GNOME Keyring, KeePassXC).
+  Nunca en ficheros planos.
 - Alta de cuentas sin abrir consola: captura de una zona de pantalla con el QR,
   portapapeles o cámara.
 - Import y export en formato `otpauth://` y `otpauth-migration://` (Google Authenticator),
@@ -67,7 +68,7 @@ otprunner doctor      # comprueba keystore, portapapeles, captura, etc.
 Opcional, en `~/.config/otprunner/config.toml` (tras cambiar `keywords`, repite `otprunner install`):
 
 ```toml
-backend = "auto"            # auto | secretservice | kwallet
+backend = "auto"            # auto (KWallet si existe, si no Secret Service) | kwallet | secretservice
 keywords = ["otp", "otpr"]  # palabras clave en KRunner
 idle_timeout = 600          # segundos sin uso antes de cerrar el servicio (0 = nunca)
 show_codes = "selected"     # selected | always | never
@@ -88,8 +89,9 @@ KRunner no refresca los resultados hasta que cambia la búsqueda; Enter copia si
   que delega en una unidad systemd de usuario: logs en `journalctl --user -u otprunner`.
 - El servicio cachea las cuentas durante la sesión de KRunner y se cierra tras
   `idle_timeout` segundos sin uso: los secretos no se quedan en memoria indefinidamente.
-- Cada cuenta es un item del keystore con atributos `application=otprunner` y
-  `account=<nombre>`; el secreto es la URI `otpauth://` completa.
+- Cada cuenta guarda la URI `otpauth://` completa. En KWallet, como una entrada de la
+  carpeta `otprunner` del monedero; en Secret Service, como un item con atributos
+  `application=otprunner` y `account=<nombre>`.
 
 ## Icono
 

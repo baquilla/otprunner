@@ -11,6 +11,7 @@ import asyncio
 
 from dbus_fast import Message, MessageType, Variant
 
+from .. import APP_NAME
 from ..dbusutil import DBusCallError, call, get_prop, name_available, session_bus
 from .base import Store, StoreError, StoreUnavailable
 
@@ -141,7 +142,7 @@ class SecretServiceStore(Store):
     async def _write(self, name: str, uri: str) -> None:
         await self._unlock()
         props = {
-            f"{I_ITEM}.Label": Variant("s", f"{self.app}: {name}"),
+            f"{I_ITEM}.Label": Variant("s", f"{APP_NAME}: {name}"),
             f"{I_ITEM}.Attributes": Variant(
                 "a{ss}", {"application": self.app, "account": name, "xdg:schema": SCHEMA}
             ),

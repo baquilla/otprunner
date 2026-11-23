@@ -8,7 +8,10 @@ from .memory import MemoryStore
 
 __all__ = ["Account", "MemoryStore", "Store", "StoreError", "StoreUnavailable", "open_store", "BACKENDS"]
 
-BACKENDS = ("secretservice", "kwallet")
+# KWallet nativo primero: guarda todo en una carpeta propia del monedero. Su puente
+# Secret Service mezcla los items en la carpeta «Secret Service» y trata «/» de la
+# etiqueta como separador de carpetas.
+BACKENDS = ("kwallet", "secretservice")
 
 
 async def open_store(backend: str = "auto", app: str = "otprunner", bus=None) -> Store:

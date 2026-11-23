@@ -36,7 +36,7 @@ guardados en el keystore del sistema y una CLI equivalente.
 
 KRunner muestra como mucho 15 resultados, repartidos entre los runners que respondan (con
 dos, unos 7 cada uno): si hay más coincidencias, aparece «+N más» y basta con escribir más
-letras. Si los comandos quedan fuera, baja `max_results`. La palabra clave es configurable; `otpr` se acepta como alias.
+letras. Por eso OTPRunner devuelve 7 por defecto (`max_results`). La palabra clave es configurable; `otpr` se acepta como alias.
 
 ### CLI
 
@@ -78,7 +78,7 @@ backend = "auto"            # auto (KWallet si existe, si no Secret Service) | k
 keywords = ["otp", "otpr"]  # palabras clave en KRunner
 idle_timeout = 600          # segundos sin uso antes de cerrar el servicio (0 = nunca)
 show_codes = "selected"     # selected | always | never
-max_results = 15            # resultados que devuelve OTPRunner (p. ej. 7 si otros runners comparten la lista)
+max_results = 7             # resultados que devuelve OTPRunner (KRunner muestra 15 repartidos entre runners; súbelo si va solo)
 camera = "/dev/video0"      # opcional: dispositivo de la cámara
 language = "es"             # opcional: idioma de la interfaz (por defecto, el del escritorio)
 ```

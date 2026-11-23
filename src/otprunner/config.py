@@ -6,7 +6,7 @@ Ejemplo::
     keywords = ["otp", "otpr"]  # palabras clave en KRunner
     idle_timeout = 600          # segundos sin uso antes de cerrar el servicio (0 = nunca)
     show_codes = "selected"     # selected: solo en la línea seleccionada | always | never
-    max_results = 15            # resultados que caben en KRunner (bajar si comparte la lista con otros runners)
+    max_results = 7             # resultados devueltos: KRunner reparte 15 entre los runners que respondan
     language = "es"             # idioma de la interfaz (por defecto, el del escritorio)
     camera = "/dev/video0"      # dispositivo de la cámara (por defecto, el del lector)
 """
@@ -39,7 +39,7 @@ class Config:
     keywords: list[str] = field(default_factory=lambda: ["otp", "otpr"])
     idle_timeout: float = 600
     show_codes: str = "selected"
-    max_results: int = 15
+    max_results: int = 7
     camera: str | None = None
     language: str | None = None
 

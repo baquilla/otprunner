@@ -37,7 +37,7 @@ system keystore and an equivalent command line.
 
 KRunner shows at most 15 results, shared among the runners that answer (with two of them,
 about 7 each): when there are more matches, a “+N more” line appears; just type a few more
-letters. If the commands get pushed out, lower `max_results`. The keyword is configurable; `otpr` is accepted as an alias.
+letters. That is why OTPRunner returns 7 by default (`max_results`). The keyword is configurable; `otpr` is accepted as an alias.
 
 ### Command line
 
@@ -79,7 +79,7 @@ backend = "auto"            # auto (KWallet if present, otherwise Secret Service
 keywords = ["otp", "otpr"]  # KRunner keywords
 idle_timeout = 600          # idle seconds before the service exits (0 = never)
 show_codes = "selected"     # selected | always | never
-max_results = 15            # results OTPRunner returns (e.g. 7 if other runners share the list)
+max_results = 7             # results OTPRunner returns (KRunner shows 15 shared among runners; raise if it is alone)
 camera = "/dev/video0"      # optional: camera device
 language = "es"             # optional: interface language (default: the desktop's)
 ```

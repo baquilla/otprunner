@@ -215,6 +215,7 @@ async def test_result_limit_keeps_commands_visible():
     for i in range(30):
         await s.put(f"acc{i:02d}a", Account(secret=bytes([i + 1]) * 10, name=f"a{i}"))
     r = make(s)
+    r.cfg.max_results = 15
     ms = await r.match("otp a")
     assert len(ms) == 15
     assert ms[-1][0] == f"query{runner.SEP}otp add "
@@ -228,6 +229,6 @@ async def test_max_results_configurable():
     for i in range(30):
         await s.put(f"acc{i:02d}a", Account(secret=bytes([i + 1]) * 10, name=f"a{i}"))
     r = make(s)
-    r.cfg.max_results = 7
+    assert r.cfg.max_results == 7  # por defecto
     ms = await r.match("otp a")
     assert len(ms) == 7 and ms[-1][0] == f"query{runner.SEP}otp add " and "+25 more" in ms[-2][1]

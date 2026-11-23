@@ -112,7 +112,7 @@ def runner_desktop(cfg: config.Config) -> str:
         "X-KDE-ServiceTypes=Plasma/Runner",
         "X-KDE-PluginInfo-Name=otprunner",
         f"X-KDE-PluginInfo-Version={__version__}",
-        "X-KDE-PluginInfo-License=LGPL",
+        "X-KDE-PluginInfo-License=GPL-3.0-or-later",
         "X-KDE-PluginInfo-EnabledByDefault=true",
         "X-Plasma-API=DBus",
         "X-Plasma-API-Minimum-Version=2.0",

@@ -30,9 +30,8 @@ OBJECT_PATH = "/runner"
 # Plasma::QueryMatch::Type
 EXACT, POSSIBLE, INFORMATIONAL = 100, 30, 50
 SEP = "\x1f"
-# KRunner (Milou) muestra como mucho 15 resultados: recortamos nosotros para que los
-# comandos y el aviso de «hay más» no se queden fuera.
-MAX_RESULTS = 15
+# KRunner (Milou) muestra como mucho 15 resultados, repartidos entre los runners que
+# respondan; recortamos a ``max_results`` para que los comandos y el «hay más» quepan.
 # Subcomandos en el orden en que se sugieren; «rm» es alias de «remove».
 COMMANDS = ("add", "rename", "remove", "export")
 ALIASES = {"rm": "remove"}
@@ -125,7 +124,7 @@ class Runner:
         cmds = [c for c in COMMANDS if c.startswith(f)]
         if not names:
             return [self._no_match(accounts, flt), *self._command_matches(cmds or ["add"])]
-        names, more = self._fit(names, MAX_RESULTS - len(cmds))
+        names, more = self._fit(names, self.cfg.max_results - len(cmds))
         now = time.time()
         out = []
         for i, name in enumerate(names):
@@ -208,7 +207,7 @@ class Runner:
             label, icon, sub = _("Remove “{name}”"), "edit-delete", _("Asks for confirmation")
         else:
             label, icon, sub = _("Rename “{name}”…"), "edit-rename", _("Asks for the new name")
-        names, more = self._fit(names, MAX_RESULTS)
+        names, more = self._fit(names, self.cfg.max_results)
         return [(f"{cmd}{SEP}{n}", label.format(name=n), icon, EXACT, max(0.5, 0.99 - i * 0.001),
                  {"subtext": sub, "category": "OTP"})
                 for i, n in enumerate(names)] + self._more(more, f"{cmd} {flt}".strip())

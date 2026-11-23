@@ -34,8 +34,9 @@ guardados en el keystore del sistema y una CLI equivalente.
 | `otp remove [filtro]` | Borrar (pide confirmación); `rm` también vale |
 | `otp export [filtro]` | Mostrar QR de migración para Google Authenticator (pide confirmación) |
 
-KRunner muestra como mucho 15 resultados: si hay más coincidencias, aparece «+N más» y basta
-con escribir más letras. La palabra clave es configurable; `otpr` se acepta como alias.
+KRunner muestra como mucho 15 resultados, repartidos entre los runners que respondan (con
+dos, unos 7 cada uno): si hay más coincidencias, aparece «+N más» y basta con escribir más
+letras. Si los comandos quedan fuera, baja `max_results`. La palabra clave es configurable; `otpr` se acepta como alias.
 
 ### CLI
 
@@ -77,6 +78,7 @@ backend = "auto"            # auto (KWallet si existe, si no Secret Service) | k
 keywords = ["otp", "otpr"]  # palabras clave en KRunner
 idle_timeout = 600          # segundos sin uso antes de cerrar el servicio (0 = nunca)
 show_codes = "selected"     # selected | always | never
+max_results = 15            # resultados que devuelve OTPRunner (p. ej. 7 si otros runners comparten la lista)
 camera = "/dev/video0"      # opcional: dispositivo de la cámara
 language = "es"             # opcional: idioma de la interfaz (por defecto, el del escritorio)
 ```
@@ -143,6 +145,11 @@ en una terminal; KRunner hablará con ese proceso.
 
 Referencias recopiladas: [docs/referencias.md](docs/referencias.md).
 Proyectos similares y plan de publicación: [docs/publicacion.md](docs/publicacion.md).
+
+## Licencia
+
+[GPL-3.0-or-later](LICENSE). Los forks son bienvenidos; las contribuciones a este
+repositorio, más aún.
 
 ## Hoja de ruta
 

@@ -7,7 +7,7 @@ import asyncio
 import sys
 import time
 
-from . import __version__, config, exporting, importer, migration
+from . import APP_NAME, __version__, config, exporting, importer, migration
 from .camera import CameraError
 from .capture import CaptureError
 from .otpauth import OtpError
@@ -177,7 +177,7 @@ async def _cmd(args, cfg) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="otprunner", description="Códigos TOTP con secretos en el keystore del sistema.")
+    p = argparse.ArgumentParser(prog="otprunner", description=f"{APP_NAME}: códigos TOTP con secretos en el keystore del sistema.")
     p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     p.add_argument("--backend", help="keystore: auto, secretservice, kwallet (por defecto, el de la config)")
     sub = p.add_subparsers(dest="cmd", required=True, metavar="COMANDO")

@@ -13,13 +13,13 @@ import logging
 import shutil
 from collections.abc import Callable
 
-from . import migration
+from . import APP_NAME, migration
 from .otpauth import OtpError
 
 log = logging.getLogger(__name__)
 
 SCAN_TIMEOUT = 180
-WINDOW_TITLE = "otprunner: enseña el QR a la cámara (Esc o cerrar para cancelar)"
+WINDOW_TITLE = f"{APP_NAME}: enseña el QR a la cámara (Esc o cerrar para cancelar)"
 
 
 class CameraError(RuntimeError):

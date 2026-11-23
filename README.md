@@ -1,4 +1,4 @@
-# otprunner
+# OTPRunner
 
 Gestor de códigos TOTP integrado en el lanzador del escritorio (KRunner en KDE Plasma),
 con los secretos guardados en el keystore del sistema y CLI equivalente.
@@ -93,19 +93,21 @@ KRunner no refresca los resultados hasta que cambia la búsqueda; Enter copia si
 
 ## Icono
 
-<img src="src/otprunner/data/otprunner.svg" width="64" alt="icono de otprunner">
+<img src="src/otprunner/data/otprunner.svg" width="64" alt="icono de OTPRunner">
 
 - **Qué representa**: un anillo de cuenta atrás alrededor de una bocallave. Junta los dos
   elementos de un TOTP: un secreto que solo tú tienes y un código que caduca. El tramo
   abierto del anillo es el tiempo ya consumido de los 30 s.
 - **Por qué no un candado o un escudo**: son los iconos genéricos de gestor de contraseñas;
-  otprunner no guarda contraseñas, da códigos efímeros.
+  OTPRunner no guarda contraseñas, da códigos efímeros.
 - **Estilo**: plano, en el azul de Breeze (`#3daee9`) con un degradado suave, y una retícula
   de 128 px con márgenes de 8 px, como los iconos de aplicación de Plasma. Solo blanco sobre
   azul: contrasta igual en temas claros y oscuros.
 - **Tamaños pequeños**: a 16 y 22 px (KRunner, bandeja, notificaciones) se usa una versión
   dibujada sobre una retícula de 16 px: anillo más grueso, sin pista de fondo y bocallave
   más grande, para que no se empaste.
+- **Nombre**: *OTPRunner* en lo visible (KRunner, notificaciones, diálogos); `otprunner`
+  en lo técnico (comando, paquete, ficheros, DBus), que se escribe en minúsculas.
 - **Dónde se usa**: plugin y resultados de KRunner, y notificaciones. Las acciones (añadir,
   borrar, exportar…) conservan los iconos estándar del tema, que ya dicen qué hacen.
 

@@ -6,6 +6,7 @@ import logging
 
 from dbus_fast import Variant
 
+from . import APP_NAME
 from .dbusutil import call
 
 log = logging.getLogger(__name__)
@@ -23,6 +24,6 @@ async def notify(bus, summary: str, body: str = "", icon: str = "otprunner", *,
         icon = "dialog-error"
     try:
         await call(bus, *DEST, "Notify", "susssasa{sv}i",
-                   ["otprunner", 0, icon, summary, body, [], hints, timeout_ms])
+                   [APP_NAME, 0, icon, summary, body, [], hints, timeout_ms])
     except Exception as e:  # noqa: BLE001 — una notificación fallida no debe romper nada
         log.warning("no se pudo notificar (%s): %s — %s", e, summary, body)

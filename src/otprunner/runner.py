@@ -14,7 +14,7 @@ from dbus_fast.aio import MessageBus
 from dbus_fast.constants import RequestNameReply
 from dbus_fast.service import ServiceInterface, method
 
-from . import adding, camera, capture, clipboard, config, dialogs, exporting
+from . import APP_NAME, adding, camera, capture, clipboard, config, dialogs, exporting
 from .dbusutil import call
 from .notify import notify
 from .otpauth import Account, OtpError
@@ -97,7 +97,7 @@ class Runner:
         try:
             accounts = await self.accounts()
         except (StoreError, OtpError) as e:
-            return [("error", f"otprunner: {e}", "dialog-error", INFORMATIONAL, 1.0, {"subtext": "Keystore"})]
+            return [("error", f"{APP_NAME}: {e}", "dialog-error", INFORMATIONAL, 1.0, {"subtext": "Keystore"})]
         cmd, _, arg = flt.partition(" ")
         if cmd.casefold() == "add":
             return self._add_matches(arg.strip())
@@ -167,18 +167,18 @@ class Runner:
             if cmd == "export":
                 await self._export(arg)
             elif cmd == "rm":
-                if await dialogs.confirm("otprunner", f"¿Borrar la cuenta «{arg}»?\n\nNo se puede deshacer: "
+                if await dialogs.confirm(APP_NAME, f"¿Borrar la cuenta «{arg}»?\n\nNo se puede deshacer: "
                                          "asegúrate de tener otra forma de acceder.", ok_label="Borrar"):
                     if await store.delete(arg):
                         await notify(self.bus, f"Borrada: {arg}")
             elif cmd == "rename":
-                new = await dialogs.ask_text("otprunner", f"Nuevo nombre para «{arg}»:", arg)
+                new = await dialogs.ask_text(APP_NAME, f"Nuevo nombre para «{arg}»:", arg)
                 if new and new != arg:
                     await store.rename(arg, new)
                     await notify(self.bus, f"Renombrada: {arg} → {new}")
         except Exception as e:  # noqa: BLE001
             log.exception("error en %s %s", cmd, arg)
-            await notify(self.bus, f"otprunner: no se pudo completar «{cmd}»", str(e), error=True)
+            await notify(self.bus, f"{APP_NAME}: no se pudo completar «{cmd}»", str(e), error=True)
         finally:
             self.forget()
 
@@ -193,13 +193,13 @@ class Runner:
         msg = (f"Se van a mostrar en pantalla {len(exp.exported)} secretos en {n} código"
                f"{'s' if n > 1 else ''} QR.\n\nCualquiera que vea o fotografíe la pantalla podrá "
                "copiar esas cuentas. ¿Continuar?")
-        if not await dialogs.confirm("otprunner: exportar", msg, ok_label="Mostrar QR"):
+        if not await dialogs.confirm(f"{APP_NAME}: exportar", msg, ok_label="Mostrar QR"):
             return
         d = capture.private_dir()
         for i, uri in enumerate(exp.uris, 1):
             path = exporting.write_png(uri, d)
             try:
-                await dialogs.show_image(path, f"otprunner: QR {i} de {n} — escanéalo con Google Authenticator")
+                await dialogs.show_image(path, f"{APP_NAME}: QR {i} de {n} — escanéalo con Google Authenticator")
             finally:
                 path.unlink(missing_ok=True)
         if exp.skipped:
@@ -236,7 +236,7 @@ class Runner:
             def progress(msg: str) -> None:
                 if self.bus is not None:
                     asyncio.get_running_loop().create_task(
-                        notify(self.bus, "otprunner", msg, timeout_ms=4000, transient=True))
+                        notify(self.bus, APP_NAME, msg, timeout_ms=4000, transient=True))
 
             outcome = await adding.add(store, source, self.bus, name=name or None,
                                        device=self.cfg.camera, progress=progress)
@@ -245,7 +245,7 @@ class Runner:
         except Exception as e:  # noqa: BLE001
             log.exception("error añadiendo desde %s", source)
             if self.bus is not None:
-                await notify(self.bus, "otprunner: no se pudo añadir", str(e), error=True)
+                await notify(self.bus, f"{APP_NAME}: no se pudo añadir", str(e), error=True)
             return
         finally:
             self.forget()
@@ -289,7 +289,7 @@ class Runner:
         except Exception as e:  # noqa: BLE001 — el servicio no debe caerse por un Run
             log.exception("error ejecutando %s", name)
             if self.bus is not None:
-                await notify(self.bus, "otprunner: no se pudo copiar", str(e), error=True)
+                await notify(self.bus, f"{APP_NAME}: no se pudo copiar", str(e), error=True)
 
 
 class KRunnerInterface(ServiceInterface):

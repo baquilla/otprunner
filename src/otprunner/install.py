@@ -18,7 +18,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from . import __version__, config
+from . import APP_NAME, __version__, config
 from .runner import BUS_NAME, OBJECT_PATH
 
 UNIT = "otprunner.service"
@@ -101,7 +101,7 @@ def match_regex(keywords: list[str]) -> str | None:
 def runner_desktop(cfg: config.Config) -> str:
     lines = [
         "[Desktop Entry]",
-        "Name=OTP",
+        f"Name={APP_NAME}",
         "Comment=Códigos TOTP del keystore del sistema",
         f"Icon={ICON}",
         "Type=Service",
@@ -131,7 +131,7 @@ def dbus_service(systemd: bool) -> str:
 
 def systemd_unit() -> str:
     return f"""[Unit]
-Description=otprunner: códigos TOTP para KRunner
+Description={APP_NAME}: códigos TOTP para KRunner
 PartOf=graphical-session.target
 
 [Service]

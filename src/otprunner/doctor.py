@@ -7,7 +7,7 @@ import platform
 import shutil
 import sys
 
-from . import __version__, camera, config
+from . import APP_NAME, __version__, camera, config
 from .dbusutil import name_available, session_bus
 from .store import BACKENDS, StoreUnavailable, kwallet, secretservice
 
@@ -16,7 +16,7 @@ OK, NO, WARN = "✔", "✘", "!"
 
 def _env() -> list[tuple[str, str]]:
     return [
-        ("otprunner", __version__),
+        (APP_NAME, __version__),
         ("Python", f"{platform.python_version()} ({sys.executable})"),
         ("Sesión", os.environ.get("XDG_SESSION_TYPE", "?")),
         ("Escritorio", os.environ.get("XDG_CURRENT_DESKTOP", "?")),

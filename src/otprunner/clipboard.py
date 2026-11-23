@@ -8,6 +8,7 @@ import os
 import shutil
 
 from .dbusutil import DBusCallError, call, name_available
+from .i18n import _
 
 log = logging.getLogger(__name__)
 
@@ -57,8 +58,9 @@ async def copy(text: str, bus=None) -> str:
             rc = await asyncio.wait_for(proc.wait(), timeout=5)
             if rc == 0:
                 return name
-            errors.append(f"{name}: código {rc}")
+            errors.append(_("{tool}: exit code {rc}").format(tool=name, rc=rc))
         except (OSError, asyncio.TimeoutError) as e:
             errors.append(f"{name}: {e}")
-    raise ClipboardError("no hay portapapeles disponible" + (": " + "; ".join(errors) if errors else
-                         " (instala wl-clipboard o xclip)"))
+    if errors:
+        raise ClipboardError(_("no clipboard available: {errors}").format(errors="; ".join(errors)))
+    raise ClipboardError(_("no clipboard available (install wl-clipboard or xclip)"))

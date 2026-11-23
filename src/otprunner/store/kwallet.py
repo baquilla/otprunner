@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from ..dbusutil import DBusCallError, call, name_available, session_bus
 from .base import Store, StoreError, StoreUnavailable
+from ..i18n import _
 
 IFACE = "org.kde.KWallet"
 DAEMONS = (("org.kde.kwalletd6", "/modules/kwalletd6"), ("org.kde.kwalletd5", "/modules/kwalletd5"))
@@ -32,7 +33,7 @@ class KWalletStore(Store):
                     self = cls(bus, app, owns, dest, path)
                     (self.wallet,) = await self._call("networkWallet")
                     return self
-            raise StoreUnavailable("kwalletd no está en el bus de sesión")
+            raise StoreUnavailable(_("kwalletd is not on the session bus"))
         except DBusCallError as e:
             if owns:
                 bus.disconnect()
@@ -46,7 +47,7 @@ class KWalletStore(Store):
         return await call(self.bus, self.dest, self.path, IFACE, member, sig, body)
 
     async def describe(self) -> str:
-        return f"KWallet nativo ({self.dest}), monedero «{self.wallet}»"
+        return _("native KWallet ({service}), wallet “{wallet}”, folder “{folder}”").format(service=self.dest, wallet=self.wallet, folder=self.folder)
 
     async def close(self) -> None:
         if self._owns_bus:
@@ -60,7 +61,7 @@ class KWalletStore(Store):
         # Puede mostrar el diálogo de contraseña; dbus-fast espera sin timeout.
         (self.handle,) = await self._call("open", "sxs", [self.wallet, 0, self.app])
         if self.handle < 0:
-            raise StoreError("no se pudo abrir el monedero (¿cancelado?)")
+            raise StoreError(_("could not open the wallet (cancelled?)"))
         (has,) = await self._call("hasFolder", "iss", [self.handle, self.folder, self.app])
         if not has:
             await self._call("createFolder", "iss", [self.handle, self.folder, self.app])
@@ -75,7 +76,7 @@ class KWalletStore(Store):
         h = await self._open()
         (rc,) = await self._call("writePassword", "issss", [h, self.folder, name, uri, self.app])
         if rc != 0:
-            raise StoreError(f"KWallet writePassword devolvió {rc}")
+            raise StoreError(_("KWallet writePassword returned {rc}").format(rc=rc))
 
     async def _remove(self, name: str) -> bool:
         h = await self._open()

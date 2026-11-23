@@ -1,0 +1,674 @@
+# Translations template for OTPRunner.
+# Copyright (C) 2026 OTPRunner contributors
+# This file is distributed under the same license as the OTPRunner project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: OTPRunner VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-11-23 00:18+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "(missing, using defaults)"
+msgstr ""
+
+#, python-brace-format
+msgid "(“{wanted}” already existed, saved as “{final}”)"
+msgstr ""
+
+msgid "Add an account from a QR code on screen"
+msgstr ""
+
+msgid "Add an account from the clipboard"
+msgstr ""
+
+msgid "Add an account with the camera"
+msgstr ""
+
+msgid "Add an account…"
+msgstr ""
+
+#, python-brace-format
+msgid "Add “{name}” from a QR code on screen"
+msgstr ""
+
+#, python-brace-format
+msgid "Add “{name}” from the clipboard"
+msgstr ""
+
+#, python-brace-format
+msgid "Add “{name}” with the camera"
+msgstr ""
+
+#, python-brace-format
+msgid "Added {n} account"
+msgid_plural "Added {n} accounts"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-brace-format
+msgid "Added: {name}"
+msgstr ""
+
+#, python-brace-format
+msgid "Already present: {names}"
+msgstr ""
+
+msgid "Asks for confirmation"
+msgstr ""
+
+msgid "Asks for the new name"
+msgstr ""
+
+#, python-brace-format
+msgid "Batch {i} of {n} read ({got}/{n}): show the next QR code"
+msgstr ""
+
+msgid "COMMAND"
+msgstr ""
+
+#, python-brace-format
+msgid "Camera ({devices})"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Clipboard"
+msgstr ""
+
+#, python-brace-format
+msgid "Code for {name} copied"
+msgstr ""
+
+msgid "Config"
+msgstr ""
+
+msgid "Continue"
+msgstr ""
+
+msgid "Could not add the account"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"Delete the account “{name}”?\n"
+"\n"
+"This cannot be undone: make sure you have another way to sign in."
+msgstr ""
+
+#, python-brace-format
+msgid "Delete “{name}”"
+msgstr ""
+
+#, python-brace-format
+msgid "Delete “{name}”? [y/N] "
+msgstr ""
+
+#, python-brace-format
+msgid "Deleted: {name}"
+msgstr ""
+
+msgid "Desktop"
+msgstr ""
+
+msgid "Dialogs"
+msgstr ""
+
+#, python-brace-format
+msgid "Done. Open KRunner and type “{keywords}”."
+msgstr ""
+
+msgid "Enter copies the code"
+msgstr ""
+
+#, python-brace-format
+msgid "Export {n} account as a QR code for Google Authenticator"
+msgid_plural "Export {n} accounts as QR codes for Google Authenticator"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-brace-format
+msgid "Google export: batch {i} of {n}"
+msgstr ""
+
+#, python-brace-format
+msgid "Google export: batch {i} of {n} — capture the next QR code"
+msgstr ""
+
+msgid "HOTP: Enter generates and copies the next code"
+msgstr ""
+
+msgid "Installation"
+msgstr ""
+
+msgid "KDE Plasma only"
+msgstr ""
+
+#, python-brace-format
+msgid "KWallet writePassword returned {rc}"
+msgstr ""
+
+msgid "Keystore"
+msgstr ""
+
+#, python-brace-format
+msgid "Keystore (backend = {backend})"
+msgstr ""
+
+msgid "Language"
+msgstr ""
+
+#, python-brace-format
+msgid "Logs: {command}"
+msgstr ""
+
+#, python-brace-format
+msgid "New name for “{name}”:"
+msgstr ""
+
+#, python-brace-format
+msgid "No account matches “{filter}”"
+msgstr ""
+
+msgid "No accounts yet"
+msgstr ""
+
+msgid "No otpauth code found"
+msgstr ""
+
+msgid "Nothing new to add"
+msgstr ""
+
+msgid "Nothing to export"
+msgstr ""
+
+msgid "Notifications"
+msgstr ""
+
+msgid "Press OK when you have scanned the QR code, and close the viewer."
+msgstr ""
+
+msgid "QR code in an area of the screen (default)"
+msgstr ""
+
+msgid "QR code shown to the camera"
+msgstr ""
+
+#, python-brace-format
+msgid "QR {i} of {n}"
+msgstr ""
+
+#, python-brace-format
+msgid "Rename “{name}”…"
+msgstr ""
+
+#, python-brace-format
+msgid "Renamed: {old} → {new}"
+msgstr ""
+
+#, python-brace-format
+msgid "Requires {hint}"
+msgstr ""
+
+msgid "Screen capture"
+msgstr ""
+
+#, python-brace-format
+msgid "Secret Service ({provider}), collection “{label}”"
+msgstr ""
+
+msgid "Select the area of the screen with the QR code…"
+msgstr ""
+
+msgid "Select the area with the QR code (a Google export works too)"
+msgstr ""
+
+msgid "Session"
+msgstr ""
+
+msgid "Show QR"
+msgstr ""
+
+msgid "Show the QR code (or those of a Google export) to the camera"
+msgstr ""
+
+msgid "Show the QR code to the camera (close the window to cancel)…"
+msgstr ""
+
+msgid "Shows the secrets on screen (asks for confirmation)"
+msgstr ""
+
+msgid "Some accounts were not exported"
+msgstr ""
+
+msgid "TOTP codes from the system keystore"
+msgstr ""
+
+msgid ""
+"The URI with the secret is still in the Klipper history: delete it from "
+"its menu."
+msgstr ""
+
+msgid "URI or QR image from the clipboard"
+msgstr ""
+
+msgid "Uninstalled. The secrets are still in the keystore."
+msgstr ""
+
+msgid "XDG Screenshot portal"
+msgstr ""
+
+msgid "accounts per migration URI"
+msgstr ""
+
+msgid "add an account"
+msgstr ""
+
+#, python-brace-format
+msgid "added: {name}"
+msgstr ""
+
+msgid "also copy it to the clipboard"
+msgstr ""
+
+#, python-brace-format
+msgid "an account named “{name}” already exists"
+msgstr ""
+
+msgid "cancelled"
+msgstr ""
+
+#, python-brace-format
+msgid "copied to the clipboard ({provider})"
+msgstr ""
+
+#, python-brace-format
+msgid "could not open the camera {device}"
+msgstr ""
+
+msgid "could not open the wallet (cancelled?)"
+msgstr ""
+
+#, python-brace-format
+msgid "data is not valid base64: {error}"
+msgstr ""
+
+msgid "debug logging"
+msgstr ""
+
+msgid "delete an account"
+msgstr ""
+
+#, python-brace-format
+msgid "deleted: {name}"
+msgstr ""
+
+msgid "diagnose the environment"
+msgstr ""
+
+msgid "do not ask for confirmation"
+msgstr ""
+
+msgid "empty secret"
+msgstr ""
+
+msgid "error: no otpauth URI found"
+msgstr ""
+
+#, python-brace-format
+msgid "error: {message}"
+msgstr ""
+
+msgid "export accounts"
+msgstr ""
+
+#, python-brace-format
+msgid "filter with: {keyword} export <text>"
+msgstr ""
+
+msgid "idle seconds before exiting (0 = never)"
+msgstr ""
+
+#, python-brace-format
+msgid "ignoring {path}: {error}"
+msgstr ""
+
+msgid "import otpauth/otpauth-migration URIs from a file, '-' or the URI itself"
+msgstr ""
+
+msgid "in use"
+msgstr ""
+
+msgid "install kdialog or zenity"
+msgstr ""
+
+msgid "install wl-clipboard (Wayland) or xclip (X11)"
+msgstr ""
+
+msgid "install xdg-desktop-portal-kde/-gnome or spectacle"
+msgstr ""
+
+msgid "install zbar (zbarcam)"
+msgstr ""
+
+#, python-brace-format
+msgid "invalid base32 secret: {error}"
+msgstr ""
+
+#, python-brace-format
+msgid "invalid digits: {digits}"
+msgstr ""
+
+#, python-brace-format
+msgid "invalid numeric parameter: {error}"
+msgstr ""
+
+#, python-brace-format
+msgid "invalid period: {period}"
+msgstr ""
+
+#, python-brace-format
+msgid "invalid show_codes={value} (use {valid})"
+msgstr ""
+
+msgid "keystore: auto, kwallet, secretservice (default: from the config)"
+msgstr ""
+
+msgid "kwalletd is not on the session bus"
+msgstr ""
+
+#, python-brace-format
+msgid "leftover from the old version: {path} (“otprunner install” removes it)"
+msgstr ""
+
+msgid "list accounts and codes"
+msgstr ""
+
+msgid "missing data parameter"
+msgstr ""
+
+msgid "missing secret parameter"
+msgstr ""
+
+msgid "name (default: issuer:account from the QR code)"
+msgstr ""
+
+msgid "names only"
+msgstr ""
+
+#, python-brace-format
+msgid "native KWallet ({service}), wallet “{wallet}”, folder “{folder}”"
+msgstr ""
+
+msgid "no"
+msgstr ""
+
+msgid "no /dev/video* devices"
+msgstr ""
+
+msgid "no QR code detected in the captured area"
+msgstr ""
+
+#, python-brace-format
+msgid "no QR reader for the camera: {hint}"
+msgstr ""
+
+#, python-brace-format
+msgid "no account matches “{filter}”"
+msgstr ""
+
+msgid "no accounts to export"
+msgstr ""
+
+msgid "no camera found (/dev/video*)"
+msgstr ""
+
+msgid "no clipboard available (install wl-clipboard or xclip)"
+msgstr ""
+
+#, python-brace-format
+msgid "no clipboard available: {errors}"
+msgstr ""
+
+msgid "no details"
+msgstr ""
+
+msgid "no dialog tool available: install kdialog or zenity"
+msgstr ""
+
+msgid "no keystore available:"
+msgstr ""
+
+msgid "no screen capture tool: install spectacle or xdg-desktop-portal"
+msgstr ""
+
+msgid "no usable keystore: install/enable KWallet, GNOME Keyring or KeePassXC"
+msgstr ""
+
+msgid "not an otpauth-migration:// URI"
+msgstr ""
+
+msgid "not an otpauth:// URI"
+msgstr ""
+
+msgid "operation cancelled by the user"
+msgstr ""
+
+#, python-brace-format
+msgid "optional name: {keyword} add <name>"
+msgstr ""
+
+#, python-brace-format
+msgid "or: {command}"
+msgstr ""
+
+msgid "otpauth:// or otpauth-migration:// URI"
+msgstr ""
+
+msgid "otpauth:// or otpauth-migration:// URI, or an image of the QR code"
+msgstr ""
+
+#, python-brace-format
+msgid "protobuf: unsupported wire type {type}"
+msgstr ""
+
+msgid "register the runner in KRunner (and the systemd user unit)"
+msgstr ""
+
+#, python-brace-format
+msgid "removed (old version): {path}"
+msgstr ""
+
+#, python-brace-format
+msgid "removed: {path}"
+msgstr ""
+
+msgid "rename an account"
+msgstr ""
+
+#, python-brace-format
+msgid "renamed: {old} → {new}"
+msgstr ""
+
+msgid "run the runner DBus service (started by DBus/systemd)"
+msgstr ""
+
+msgid "run “otprunner install” to register the runner"
+msgstr ""
+
+msgid "show as QR codes in the terminal"
+msgstr ""
+
+msgid "show the code of an account"
+msgstr ""
+
+#, python-brace-format
+msgid "skipped (already present with the same secret): {name}"
+msgstr ""
+
+#, python-brace-format
+msgid "skipped {name}: {reason} (use --format otpauth)"
+msgstr ""
+
+msgid "the Secret Service has no default collection"
+msgstr ""
+
+#, python-brace-format
+msgid "the account “{name}” does not exist"
+msgstr ""
+
+#, python-brace-format
+msgid "the account “{name}” no longer exists"
+msgstr ""
+
+msgid "the camera returns no images"
+msgstr ""
+
+#, python-brace-format
+msgid "the interpreter path contains spaces, which is not supported: {path}"
+msgstr ""
+
+msgid "the name cannot be empty"
+msgstr ""
+
+#, python-brace-format
+msgid "the portal returned no screenshot (code {code})"
+msgstr ""
+
+msgid "timed out without reading any QR code"
+msgstr ""
+
+msgid "truncated protobuf"
+msgstr ""
+
+msgid "undo install (the secrets are kept)"
+msgstr ""
+
+#, python-brace-format
+msgid "unknown backend: {name} (valid: auto, {valid})"
+msgstr ""
+
+msgid "unnamed"
+msgstr ""
+
+#, python-brace-format
+msgid "unsupported algorithm: {algorithm}"
+msgstr ""
+
+#, python-brace-format
+msgid "unsupported type: {type}"
+msgstr ""
+
+#, python-brace-format
+msgid "valid until {time}  ·  next: {code}"
+msgstr ""
+
+msgid "without notifications, errors only go to the journal"
+msgstr ""
+
+#, python-brace-format
+msgid "written: {path}"
+msgstr ""
+
+msgid "y"
+msgstr ""
+
+msgid "yes"
+msgstr ""
+
+#, python-brace-format
+msgid "zbarcam failed ({rc}): {detail}"
+msgstr ""
+
+#, python-brace-format
+msgid "{app}: QR {i} of {n} — scan it with Google Authenticator"
+msgstr ""
+
+#, python-brace-format
+msgid "{app}: TOTP codes with the secrets in the system keystore."
+msgstr ""
+
+#, python-brace-format
+msgid "{app}: could not add the account"
+msgstr ""
+
+#, python-brace-format
+msgid "{app}: could not complete “{command}”"
+msgstr ""
+
+#, python-brace-format
+msgid "{app}: could not copy the code"
+msgstr ""
+
+#, python-brace-format
+msgid "{app}: export"
+msgstr ""
+
+#, python-brace-format
+msgid "{app}: show the QR code to the camera (Esc or close to cancel)"
+msgstr ""
+
+#, python-brace-format
+msgid "{current} (available: {langs})"
+msgstr ""
+
+#, python-brace-format
+msgid "{name}: otpauth-migration only supports 6 or 8 digits"
+msgstr ""
+
+#, python-brace-format
+msgid "{name}: otpauth-migration only supports a 30 s period"
+msgstr ""
+
+#, python-brace-format
+msgid "{n} QR code"
+msgid_plural "{n} QR codes"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-brace-format
+msgid "{n} secret"
+msgid_plural "{n} secrets"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-brace-format
+msgid ""
+"{secrets} will be shown on screen in {codes}.\n"
+"\n"
+"Anyone who sees or photographs the screen can copy those accounts. "
+"Continue?"
+msgstr ""
+
+#, python-brace-format
+msgid "{service} is not on the session bus"
+msgstr ""
+
+#, python-brace-format
+msgid "{tool}: exit code {rc}"
+msgstr ""
+
+#, python-brace-format
+msgid "{tool}: timed out"
+msgstr ""
+
+#, python-brace-format
+msgid "“{filter}” is ambiguous: {matches}"
+msgstr ""
+
+#, python-brace-format
+msgid "“{wanted}” already existed: saved as “{final}”"
+msgstr ""
+

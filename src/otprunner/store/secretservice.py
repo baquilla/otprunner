@@ -13,6 +13,7 @@ from dbus_fast import Message, MessageType, Variant
 
 from .. import APP_NAME
 from ..dbusutil import DBusCallError, call, get_prop, name_available, session_bus
+from ..i18n import _
 from .base import Store, StoreError, StoreUnavailable
 
 BUS = "org.freedesktop.secrets"
@@ -40,12 +41,12 @@ class SecretServiceStore(Store):
         bus = bus or await session_bus()
         try:
             if not await name_available(bus, BUS):
-                raise StoreUnavailable(f"{BUS} no está en el bus de sesión")
+                raise StoreUnavailable(_("{service} is not on the session bus").format(service=BUS))
             self = cls(bus, app, owns)
-            _, self.session = await call(bus, BUS, SERVICE_PATH, I_SERVICE, "OpenSession", "sv", ["plain", Variant("s", "")])
+            _out, self.session = await call(bus, BUS, SERVICE_PATH, I_SERVICE, "OpenSession", "sv", ["plain", Variant("s", "")])
             (self.collection,) = await call(bus, BUS, SERVICE_PATH, I_SERVICE, "ReadAlias", "s", ["default"])
             if self.collection == "/":
-                raise StoreUnavailable("el Secret Service no tiene colección por defecto")
+                raise StoreUnavailable(_("the Secret Service has no default collection"))
             return self
         except DBusCallError as e:
             if owns:
@@ -77,7 +78,7 @@ class SecretServiceStore(Store):
             except OSError:
                 provider = f"pid {pid}"
             label = await get_prop(self.bus, BUS, self.collection, I_COLLECTION, "Label")
-            return f"Secret Service ({provider}), colección «{label}»"
+            return _("Secret Service ({provider}), collection “{label}”").format(provider=provider, label=label)
         except DBusCallError:
             return "Secret Service"
 
@@ -107,7 +108,7 @@ class SecretServiceStore(Store):
         finally:
             self.bus.remove_message_handler(handler)
         if dismissed:
-            raise StoreError("operación cancelada por el usuario")
+            raise StoreError(_("operation cancelled by the user"))
         return result.value
 
     async def _unlock(self) -> None:
@@ -148,7 +149,7 @@ class SecretServiceStore(Store):
             ),
         }
         secret = [self.session, b"", uri.encode("utf-8"), "text/plain; charset=utf8"]
-        _, prompt = await call(
+        _item, prompt = await call(
             self.bus, BUS, self.collection, I_COLLECTION, "CreateItem", "a{sv}(oayays)b", [props, secret, True]
         )
         await self._prompt(prompt)

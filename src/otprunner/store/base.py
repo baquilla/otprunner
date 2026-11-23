@@ -3,6 +3,7 @@ from __future__ import annotations
 import abc
 
 from ..otpauth import Account, OtpError
+from ..i18n import _
 
 
 class StoreError(RuntimeError):
@@ -55,9 +56,9 @@ class Store(abc.ABC):
     async def put(self, name: str, account: Account, *, replace: bool = False) -> None:
         name = name.strip()
         if not name:
-            raise StoreError("el nombre no puede estar vacío")
+            raise StoreError(_("the name cannot be empty"))
         if not replace and name in await self._load():
-            raise StoreError(f"ya existe una cuenta llamada «{name}»")
+            raise StoreError(_("an account named “{name}” already exists").format(name=name))
         await self._write(name, account.to_uri())
 
     async def delete(self, name: str) -> bool:
@@ -67,9 +68,9 @@ class Store(abc.ABC):
         new = new.strip()
         data = await self._load()
         if old not in data:
-            raise StoreError(f"no existe la cuenta «{old}»")
+            raise StoreError(_("the account “{name}” does not exist").format(name=old))
         if new in data:
-            raise StoreError(f"ya existe una cuenta llamada «{new}»")
+            raise StoreError(_("an account named “{name}” already exists").format(name=new))
         await self._write(new, data[old])
         await self._remove(old)
 

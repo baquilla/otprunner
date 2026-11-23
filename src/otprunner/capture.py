@@ -20,6 +20,7 @@ from urllib.parse import unquote, urlsplit
 from dbus_fast import Message, MessageType, Variant
 
 from .dbusutil import DBusCallError, call, name_available
+from .i18n import _
 
 log = logging.getLogger(__name__)
 
@@ -31,6 +32,10 @@ class CaptureError(RuntimeError):
 
 
 class CaptureCancelled(CaptureError):
+    pass
+
+
+class NoQRFound(CaptureError):
     pass
 
 
@@ -63,10 +68,10 @@ async def _run(cmd: list[str], timeout: float = CAPTURE_TIMEOUT) -> int:
         *cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
     )
     try:
-        _, err = await asyncio.wait_for(proc.communicate(), timeout)
+        _out, err = await asyncio.wait_for(proc.communicate(), timeout)
     except asyncio.TimeoutError:
         proc.kill()
-        raise CaptureError(f"{cmd[0]}: tiempo agotado") from None
+        raise CaptureError(_("{tool}: timed out").format(tool=cmd[0])) from None
     if proc.returncode:
         log.debug("%s rc=%s: %s", cmd[0], proc.returncode, err.decode(errors="replace").strip())
     return proc.returncode
@@ -98,13 +103,13 @@ async def _portal(bus, out: Path) -> Path:
                    ["", {"handle_token": Variant("s", token), "interactive": Variant("b", True)}])
         code, results = await asyncio.wait_for(fut, CAPTURE_TIMEOUT)
     except asyncio.TimeoutError:
-        raise CaptureError("portal: tiempo agotado") from None
+        raise CaptureError(_("{tool}: timed out").format(tool="portal")) from None
     finally:
         bus.remove_message_handler(handler)
     if code == 1:
-        raise CaptureCancelled("captura cancelada")
+        raise CaptureCancelled("cancelled")
     if code != 0 or "uri" not in results:
-        raise CaptureError(f"el portal no devolvió captura (código {code})")
+        raise CaptureError(_("the portal returned no screenshot (code {code})").format(code=code))
     parts = urlsplit(results["uri"].value)
     return Path(unquote(parts.path))
 
@@ -133,7 +138,8 @@ async def screenshot(bus, provider: str, out: Path) -> Path:
     }[provider]
     rc = await _run(cmd)
     if not out.exists() or out.stat().st_size == 0:
-        raise CaptureCancelled("captura cancelada") if rc in (0, 1) else CaptureError(f"{provider} falló (código {rc})")
+        raise CaptureCancelled("cancelled") if rc in (0, 1) else CaptureError(
+            _("{tool}: exit code {rc}").format(tool=provider, rc=rc))
     return out
 
 
@@ -141,7 +147,7 @@ async def from_screen(bus, delay: float = 0.4) -> list[str]:
     """Pide al usuario una zona de pantalla y devuelve los textos de los QR que haya."""
     provs = await providers(bus)
     if not provs:
-        raise CaptureError("no hay herramienta de captura: instala spectacle o xdg-desktop-portal")
+        raise CaptureError(_("no screen capture tool: install spectacle or xdg-desktop-portal"))
     await asyncio.sleep(delay)  # que KRunner termine de cerrarse
     out = private_dir() / f"capture-{secrets.token_hex(6)}.png"
     errors = []
@@ -151,13 +157,11 @@ async def from_screen(bus, delay: float = 0.4) -> list[str]:
             img = await screenshot(bus, prov, out)
             texts = await asyncio.get_running_loop().run_in_executor(None, decode_qr, img)
             if not texts:
-                raise CaptureError("no se ha detectado ningún código QR en la zona capturada")
+                raise NoQRFound(_("no QR code detected in the captured area"))
             return texts
-        except CaptureCancelled:
+        except (CaptureCancelled, NoQRFound):
             raise
         except CaptureError as e:
-            if "QR" in str(e):
-                raise
             errors.append(f"{prov}: {e}")
         except (OSError, DBusCallError) as e:
             errors.append(f"{prov}: {e}")
@@ -166,7 +170,7 @@ async def from_screen(bus, delay: float = 0.4) -> list[str]:
                 try:
                     p.unlink(missing_ok=True)
                 except OSError as e:
-                    log.warning("no se pudo borrar %s: %s", p, e)
+                    log.warning("could not delete %s: %s", p, e)
     raise CaptureError("; ".join(errors))
 
 
@@ -177,7 +181,7 @@ async def _read_cmd(cmd: list[str]) -> bytes | None:
     try:
         proc = await asyncio.create_subprocess_exec(
             *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
-        data, _ = await asyncio.wait_for(proc.communicate(), 5)
+        data, _err = await asyncio.wait_for(proc.communicate(), 5)
         return data if proc.returncode == 0 and data else None
     except (OSError, asyncio.TimeoutError):
         return None

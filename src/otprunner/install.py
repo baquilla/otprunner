@@ -18,10 +18,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-from . import APP_NAME, __version__, config
+from . import APP_NAME, __version__, config, i18n
+from .i18n import N_, _
 from .runner import BUS_NAME, OBJECT_PATH
 
 UNIT = "otprunner.service"
+# Sin traducir aquí: el .desktop lleva Comment[xx] para cada catálogo disponible.
+COMMENT = N_("TOTP codes from the system keystore")
 
 
 def _data_home() -> Path:
@@ -80,7 +83,7 @@ def legacy_paths() -> list[Path]:
 def exec_line() -> str:
     exe = sys.executable
     if any(c.isspace() for c in exe):
-        raise RuntimeError(f"la ruta del intérprete contiene espacios, no soportado: {exe}")
+        raise RuntimeError(_("the interpreter path contains spaces, which is not supported: {path}").format(path=exe))
     return f"{exe} -m otprunner serve"
 
 
@@ -102,7 +105,8 @@ def runner_desktop(cfg: config.Config) -> str:
     lines = [
         "[Desktop Entry]",
         f"Name={APP_NAME}",
-        "Comment=Códigos TOTP del keystore del sistema",
+        f"Comment={COMMENT}",
+        *(f"Comment[{lang}]={i18n.translation_for(lang).gettext(COMMENT)}" for lang in i18n.available()),
         f"Icon={ICON}",
         "Type=Service",
         "X-KDE-ServiceTypes=Plasma/Runner",
@@ -167,15 +171,15 @@ def install(verbose: bool = True) -> int:
         p[key].parent.mkdir(parents=True, exist_ok=True)
         p[key].write_text(content)
         if verbose:
-            print(f"escrito: {p[key]}")
+            print(_("written: {path}").format(path=p[key]))
     for icon in install_icons():
         if verbose:
-            print(f"escrito: {icon}")
+            print(_("written: {path}").format(path=icon))
     for old in legacy_paths():
         if old.exists() and "otprunner" in old.read_text(errors="replace"):
             old.unlink()
             if verbose:
-                print(f"borrado (versión antigua): {old}")
+                print(_("removed (old version): {path}").format(path=old))
     if systemd:
         _run(["systemctl", "--user", "daemon-reload"])
         # Si había una instancia corriendo, que coja el código/config nuevos.
@@ -183,9 +187,9 @@ def install(verbose: bool = True) -> int:
     restart_krunner()
     if verbose:
         kws = " / ".join(cfg.keywords)
-        print(f"\nListo. Abre KRunner y escribe «{kws}».")
+        print("\n" + _("Done. Open KRunner and type “{keywords}”.").format(keywords=kws))
         if systemd:
-            print(f"Logs: journalctl --user -u {UNIT}")
+            print(_("Logs: {command}").format(command=f"journalctl --user -u {UNIT}"))
     return 0
 
 
@@ -196,10 +200,10 @@ def uninstall(verbose: bool = True) -> int:
         if f.exists():
             f.unlink()
             if verbose:
-                print(f"borrado: {f}")
+                print(_("removed: {path}").format(path=f))
     if has_systemd_user():
         _run(["systemctl", "--user", "daemon-reload"])
     restart_krunner()
     if verbose:
-        print("Desinstalado. Los secretos siguen en el keystore.")
+        print(_("Uninstalled. The secrets are still in the keystore."))
     return 0

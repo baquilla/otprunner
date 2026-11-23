@@ -9,6 +9,7 @@ import struct
 import time
 from dataclasses import dataclass, replace
 from urllib.parse import parse_qs, quote, unquote, urlencode, urlsplit
+from .i18n import _
 
 ALGORITHMS = {"SHA1": hashlib.sha1, "SHA256": hashlib.sha256, "SHA512": hashlib.sha512, "MD5": hashlib.md5}
 
@@ -27,7 +28,7 @@ def b32decode(secret: str) -> bytes:
     try:
         return base64.b32decode(s + "=" * (-len(s) % 8))
     except (ValueError, base64.binascii.Error) as e:
-        raise OtpError(f"secreto base32 no válido: {e}") from None
+        raise OtpError(_("invalid base32 secret: {error}").format(error=e)) from None
 
 
 def b32encode(secret: bytes) -> str:
@@ -47,15 +48,15 @@ class Account:
 
     def __post_init__(self) -> None:
         if not self.secret:
-            raise OtpError("secreto vacío")
+            raise OtpError(_("empty secret"))
         if self.type not in ("totp", "hotp"):
-            raise OtpError(f"tipo no soportado: {self.type}")
+            raise OtpError(_("unsupported type: {type}").format(type=self.type))
         if self.algorithm not in ALGORITHMS:
-            raise OtpError(f"algoritmo no soportado: {self.algorithm}")
+            raise OtpError(_("unsupported algorithm: {algorithm}").format(algorithm=self.algorithm))
         if not 6 <= self.digits <= 10:
-            raise OtpError(f"dígitos no válidos: {self.digits}")
+            raise OtpError(_("invalid digits: {digits}").format(digits=self.digits))
         if self.period <= 0:
-            raise OtpError(f"periodo no válido: {self.period}")
+            raise OtpError(_("invalid period: {period}").format(period=self.period))
 
     # --- identidad -------------------------------------------------------
     @property
@@ -96,11 +97,11 @@ class Account:
     def from_uri(cls, uri: str) -> Account:
         parts = urlsplit(uri.strip())
         if parts.scheme.lower() != "otpauth":
-            raise OtpError("no es una URI otpauth://")
+            raise OtpError(_("not an otpauth:// URI"))
         otp_type = parts.netloc.lower()
         q = {k.lower(): v[-1] for k, v in parse_qs(parts.query, keep_blank_values=True).items()}
         if "secret" not in q:
-            raise OtpError("falta el parámetro secret")
+            raise OtpError(_("missing secret parameter"))
         label = unquote(parts.path.lstrip("/"))
         issuer = clean_text(q.get("issuer", ""))
         name = clean_text(label)
@@ -124,7 +125,7 @@ class Account:
         except ValueError as e:
             if isinstance(e, OtpError):
                 raise
-            raise OtpError(f"parámetro numérico no válido: {e}") from None
+            raise OtpError(_("invalid numeric parameter: {error}").format(error=e)) from None
 
     def with_counter(self, counter: int) -> Account:
         return replace(self, counter=counter)

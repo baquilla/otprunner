@@ -8,6 +8,7 @@ from collections.abc import Callable
 
 from . import camera, capture, importer
 from .dbusutil import name_available
+from .i18n import _, ngettext
 from .store import Store
 
 SOURCES = ("screen", "clipboard", "camera")
@@ -28,23 +29,29 @@ class Outcome:
         r, p = self.result, self.parsed
         lines = []
         if r.added:
-            title = f"Añadida: {r.added[0]}" if len(r.added) == 1 else f"Añadidas {len(r.added)} cuentas"
+            if len(r.added) == 1:
+                title = _("Added: {name}").format(name=r.added[0])
+            else:
+                title = ngettext("Added {n} account", "Added {n} accounts", len(r.added)).format(n=len(r.added))
             if len(r.added) > 1:
                 lines.append(", ".join(r.added))
         elif r.skipped:
-            title = "Nada nuevo que añadir"
+            title = _("Nothing new to add")
         elif p.errors:
-            title = "No se pudo añadir la cuenta"
+            title = _("Could not add the account")
         else:
-            title = "No se encontró ningún código otpauth"
+            title = _("No otpauth code found")
         for wanted, final in r.renamed:
-            lines.append(f"«{wanted}» ya existía: guardada como «{final}»")
+            lines.append(_("“{wanted}” already existed: saved as “{final}”").format(wanted=wanted, final=final))
         if r.skipped:
-            lines.append("Ya existían: " + ", ".join(r.skipped))
+            lines.append(_("Already present: {names}").format(names=", ".join(r.skipped)))
         for b in p.batches:
             if b.batch_size > 1:
-                more = " — captura el siguiente QR" if b.batch_index + 1 < b.batch_size else ""
-                lines.append(f"Exportación de Google: lote {b.batch_index + 1} de {b.batch_size}{more}")
+                if b.batch_index + 1 < b.batch_size:
+                    msg = _("Google export: batch {i} of {n} — capture the next QR code")
+                else:
+                    msg = _("Google export: batch {i} of {n}")
+                lines.append(msg.format(i=b.batch_index + 1, n=b.batch_size))
         lines.extend(p.errors)
         if self.ok:
             lines.extend(self.notes)
@@ -59,7 +66,7 @@ async def acquire(source: str, bus, *, uri: str | None = None, device: str | Non
     if source == "camera":
         texts = await camera.scan(device, progress)
         if not texts:
-            raise capture.CaptureCancelled("lectura cancelada")
+            raise capture.CaptureCancelled("cancelled")
         return importer.parse_text("\n".join(texts)), []
     if source == "screen":
         return importer.parse_text("\n".join(await capture.from_screen(bus))), []
@@ -71,9 +78,9 @@ async def acquire(source: str, bus, *, uri: str | None = None, device: str | Non
         # Klipper no permite borrar una entrada concreta del historial (ni vaciar el
         # portapapeles si «evitar portapapeles vacío» está activo): solo podemos avisar.
         if parsed.accounts and bus is not None and await name_available(bus, "org.kde.klipper"):
-            notes.append("La URI con el secreto sigue en el historial de Klipper: bórrala desde su menú.")
+            notes.append(_("The URI with the secret is still in the Klipper history: delete it from its menu."))
         return parsed, notes
-    raise ValueError(f"origen desconocido: {source}")
+    raise ValueError(f"unknown source: {source}")
 
 
 async def add(store: Store, source: str, bus, *, name: str | None = None, uri: str | None = None,

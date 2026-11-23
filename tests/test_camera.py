@@ -20,7 +20,7 @@ def test_collector_waits_for_all_batches_and_dedupes():
     assert not c.feed(uris[1])  # repetido (la cámara lo lee muchas veces)
     assert not c.feed(uris[0])
     assert c.feed(uris[2])
-    assert len(c.texts) == 3 and len(msgs) == 2 and "Lote 2 de 3" in msgs[0]
+    assert len(c.texts) == 3 and len(msgs) == 2 and "Batch 2 of 3" in msgs[0]
 
 
 async def test_zbarcam_parsing(monkeypatch, tmp_path):

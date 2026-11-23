@@ -14,12 +14,14 @@ import shutil
 from collections.abc import Callable
 
 from . import APP_NAME, migration
+from .i18n import _
 from .otpauth import OtpError
 
 log = logging.getLogger(__name__)
 
 SCAN_TIMEOUT = 180
-WINDOW_TITLE = f"{APP_NAME}: enseña el QR a la cámara (Esc o cerrar para cancelar)"
+def window_title() -> str:
+    return _("{app}: show the QR code to the camera (Esc or close to cancel)").format(app=APP_NAME)
 
 
 class CameraError(RuntimeError):
@@ -47,8 +49,8 @@ def install_hint() -> str:
     elif shutil.which("pacman"):
         pkg = "sudo pacman -S zbar"
     else:
-        pkg = "instala zbar (zbarcam)"
-    return f"{pkg}  —  o bien: pipx inject otprunner opencv-python"
+        pkg = _("install zbar (zbarcam)")
+    return pkg + "  —  " + _("or: {command}").format(command="pipx inject otprunner opencv-python")
 
 
 class Collector:
@@ -75,7 +77,7 @@ class Collector:
             try:
                 b = migration.decode(text)
             except OtpError as e:
-                log.info("QR de migración no válido: %s", e)
+                log.info("invalid migration QR code: %s", e)
                 return self.done
             self.texts.append(text)
             got = self._batches.setdefault(b.batch_id, set())
@@ -84,10 +86,10 @@ class Collector:
             if len(got) >= b.batch_size:
                 self.done = True
             else:
-                self.progress(f"Lote {b.batch_index + 1} de {b.batch_size} leído "
-                              f"({len(got)}/{b.batch_size}): enseña el siguiente QR")
+                self.progress(_("Batch {i} of {n} read ({got}/{n}): show the next QR code").format(
+                    i=b.batch_index + 1, n=b.batch_size, got=len(got)))
         else:
-            log.info("QR ignorado: no es otpauth")
+            log.info("QR code ignored: not otpauth")
         return self.done
 
 
@@ -104,8 +106,8 @@ async def _zbarcam(device: str | None, col: Collector) -> None:
             if not line:
                 break
             text = line.decode(errors="replace").strip()
-            _, sep, data = text.partition(":")
-            if sep and _.replace("-", "").isalnum() and not _.lower().startswith("otpauth"):
+            prefix, sep, data = text.partition(":")
+            if sep and prefix.replace("-", "").isalnum() and not prefix.lower().startswith("otpauth"):
                 text = data  # quitar el prefijo de simbología («QR-Code:»)
             if col.feed(text):
                 break
@@ -121,7 +123,8 @@ async def _zbarcam(device: str | None, col: Collector) -> None:
         except asyncio.TimeoutError:  # algún hijo mantiene stderr abierto
             err = ""
     if proc.returncode not in (0, None, -15) and not col.texts:
-        raise CameraError(f"zbarcam falló ({proc.returncode}): {err.splitlines()[-1] if err else 'sin detalle'}")
+        raise CameraError(_("zbarcam failed ({rc}): {detail}").format(
+            rc=proc.returncode, detail=err.splitlines()[-1] if err else _("no details")))
 
 
 def _opencv_blocking(device: str | None, col: Collector, deadline: float) -> None:
@@ -133,19 +136,20 @@ def _opencv_blocking(device: str | None, col: Collector, deadline: float) -> Non
     idx = int(device.removeprefix("/dev/video")) if device else 0
     cap = cv2.VideoCapture(idx)
     if not cap.isOpened():
-        raise CameraError(f"no se pudo abrir la cámara {device or idx}")
+        raise CameraError(_("could not open the camera {device}").format(device=device or idx))
     try:
-        cv2.namedWindow(WINDOW_TITLE, cv2.WINDOW_AUTOSIZE)
+        title = window_title()
+        cv2.namedWindow(title, cv2.WINDOW_AUTOSIZE)
         while time.monotonic() < deadline:
             ok, frame = cap.read()
             if not ok:
-                raise CameraError("la cámara no devuelve imágenes")
-            cv2.imshow(WINDOW_TITLE, frame)
+                raise CameraError(_("the camera returns no images"))
+            cv2.imshow(title, frame)
             for r in zxingcpp.read_barcodes(frame, formats=zxingcpp.BarcodeFormat.QRCode):
                 if r.text and col.feed(r.text):
                     return
             key = cv2.waitKey(30) & 0xFF
-            if key == 27 or cv2.getWindowProperty(WINDOW_TITLE, cv2.WND_PROP_VISIBLE) < 1:
+            if key == 27 or cv2.getWindowProperty(title, cv2.WND_PROP_VISIBLE) < 1:
                 return
     finally:
         cap.release()
@@ -157,12 +161,12 @@ async def scan(device: str | None = None, progress: Callable[[str], None] | None
     """Devuelve los textos otpauth leídos (vacío si el usuario cerró sin leer nada)."""
     provs = providers()
     if not provs:
-        raise CameraError("no hay lector de QR para la cámara: " + install_hint())
+        raise CameraError(_("no QR reader for the camera: {hint}").format(hint=install_hint()))
     if not devices():
-        raise CameraError("no se ha encontrado ninguna cámara (/dev/video*)")
+        raise CameraError(_("no camera found (/dev/video*)"))
     col = Collector(progress)
     prov = provs[0]
-    log.info("leyendo QR con %s (%s)", prov, device or "cámara por defecto")
+    log.info("reading QR code with %s (%s)", prov, device or "default camera")
     try:
         if prov == "zbarcam":
             await asyncio.wait_for(_zbarcam(device, col), timeout)
@@ -177,5 +181,5 @@ async def scan(device: str | None = None, progress: Callable[[str], None] | None
             await loop.run_in_executor(None, _opencv_blocking, device, col, time.monotonic() + timeout)
     except asyncio.TimeoutError:
         if not col.texts:
-            raise CameraError("tiempo agotado sin leer ningún QR") from None
+            raise CameraError(_("timed out without reading any QR code")) from None
     return col.texts

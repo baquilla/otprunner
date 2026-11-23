@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 
 from . import migration
 from .otpauth import Account, OtpError
+from .i18n import _
 from .store import Store
 
 _URI_RE = re.compile(r"otpauth(?:-migration)?://[^\s\"'<>]+", re.IGNORECASE)
@@ -65,7 +66,7 @@ async def import_accounts(store: Store, accounts: list[Account], name: str | Non
     taken = set(existing)
     res = ImportResult()
     for acc in accounts:
-        wanted = (name or acc.label or "sin nombre").strip()
+        wanted = (name or acc.label or _("unnamed")).strip()
         if (acc.secret, acc.type) in known:
             res.skipped.append(wanted)
             continue

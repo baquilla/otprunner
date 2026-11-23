@@ -6,6 +6,7 @@ Ejemplo::
     keywords = ["otp", "otpr"]  # palabras clave en KRunner
     idle_timeout = 600          # segundos sin uso antes de cerrar el servicio (0 = nunca)
     show_codes = "selected"     # selected: solo en la línea seleccionada | always | never
+    language = "es"             # idioma de la interfaz (por defecto, el del escritorio)
     camera = "/dev/video0"      # dispositivo de la cámara (por defecto, el del lector)
 """
 
@@ -15,6 +16,7 @@ import os
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from .i18n import _
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -37,6 +39,7 @@ class Config:
     idle_timeout: float = 600
     show_codes: str = "selected"
     camera: str | None = None
+    language: str | None = None
 
 
 def load(path: Path | None = None) -> Config:
@@ -47,7 +50,7 @@ def load(path: Path | None = None) -> Config:
     except FileNotFoundError:
         return cfg
     except (OSError, tomllib.TOMLDecodeError) as e:
-        print(f"otprunner: ignorando {path}: {e}", file=sys.stderr)
+        print("otprunner: " + _("ignoring {path}: {error}").format(path=path, error=e), file=sys.stderr)
         return cfg
     if isinstance(data.get("backend"), str):
         cfg.backend = data["backend"]
@@ -61,7 +64,10 @@ def load(path: Path | None = None) -> Config:
     if show in SHOW_CODES:
         cfg.show_codes = show
     elif show is not None:
-        print(f"otprunner: show_codes={show!r} no válido (usa {', '.join(SHOW_CODES)})", file=sys.stderr)
+        print("otprunner: " + _("invalid show_codes={value} (use {valid})").format(
+            value=repr(show), valid=", ".join(SHOW_CODES)), file=sys.stderr)
     if isinstance(data.get("camera"), str) and data["camera"]:
         cfg.camera = data["camera"]
+    if isinstance(data.get("language"), str) and data["language"]:
+        cfg.language = data["language"]
     return cfg

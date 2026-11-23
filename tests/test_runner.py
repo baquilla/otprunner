@@ -37,7 +37,7 @@ async def test_match_filters_and_formats(store):
     mid, text, icon, typ, rel, props = ms[0]
     code, name = text.split("   ")
     assert len(code) == 7 and name == "PayPal:bob" and typ == runner.EXACT
-    assert props["subtext"].startswith("vale hasta las ") and "después: " in props["subtext"]
+    assert props["subtext"].startswith("valid until ") and "next: " in props["subtext"]
     ms = await r.match("otp")
     assert {m[0].split(runner.SEP)[1] for m in ms if m[0].startswith("code")} == {"GitHub:alice", "PayPal:bob", "hotp"}
     assert ms[-1][0] == f"query{runner.SEP}otp add "  # entrada de ayuda al final
@@ -103,7 +103,7 @@ async def test_add_matches(store):
     r = make(store)
     ms = await r.match("otp add Mi Banco")
     assert [m[0] for m in ms] == [f"add{runner.SEP}{src}{runner.SEP}Mi Banco" for src in ("screen", "clipboard", "camera")]
-    assert "«Mi Banco»" in ms[0][1]
+    assert "“Mi Banco”" in ms[0][1]
     assert len(await r.match("otp add")) == 3
 
 
@@ -138,11 +138,11 @@ async def test_run_add_cancelled_is_silent(store, monkeypatch):
 async def test_manage_matches(store):
     r = make(store)
     ms = await r.match("otp rm git")
-    assert [m[0] for m in ms] == [f"rm{runner.SEP}GitHub:alice"] and "Borrar" in ms[0][1]
+    assert [m[0] for m in ms] == [f"rm{runner.SEP}GitHub:alice"] and "Delete" in ms[0][1]
     ms = await r.match("otp rename")
     assert len(ms) == 3 and all(m[0].startswith("rename") for m in ms)
     (m,) = await r.match("otp export pay")
-    assert m[0] == f"export{runner.SEP}pay" and "1 cuenta " in m[1]
+    assert m[0] == f"export{runner.SEP}pay" and "1 account " in m[1]
     assert (await r.match("otp rm zzz"))[0][0] == "none"
 
 

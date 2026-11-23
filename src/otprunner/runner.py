@@ -14,8 +14,9 @@ from dbus_fast.aio import MessageBus
 from dbus_fast.constants import RequestNameReply
 from dbus_fast.service import ServiceInterface, method
 
-from . import APP_NAME, adding, camera, capture, clipboard, config, dialogs, exporting
+from . import APP_NAME, adding, camera, capture, clipboard, config, dialogs, exporting, i18n
 from .dbusutil import call
+from .i18n import _, ngettext
 from .notify import notify
 from .otpauth import Account, OtpError
 from .store import Store, StoreError, open_store
@@ -55,7 +56,7 @@ class Runner:
     def parse(self, query: str) -> str | None:
         """Devuelve el filtro si la consulta es nuestra, o None."""
         q = query.strip()
-        head, _, rest = q.partition(" ")
+        head, _sep, rest = q.partition(" ")
         if head.casefold() in (k.casefold() for k in self.cfg.keywords):
             return rest.strip()
         return None
@@ -89,6 +90,13 @@ class Runner:
     def forget(self) -> None:
         self._cache = None
 
+    def _no_match(self, accounts: dict, flt: str) -> tuple:
+        if not accounts:
+            text = _("No accounts yet")
+        else:
+            text = _("No account matches “{filter}”").format(filter=flt)
+        return ("none", text, "dialog-information", INFORMATIONAL, 0.5, {})
+
     async def match(self, query: str) -> list:
         flt = self.parse(query)
         if flt is None:
@@ -97,8 +105,8 @@ class Runner:
         try:
             accounts = await self.accounts()
         except (StoreError, OtpError) as e:
-            return [("error", f"{APP_NAME}: {e}", "dialog-error", INFORMATIONAL, 1.0, {"subtext": "Keystore"})]
-        cmd, _, arg = flt.partition(" ")
+            return [("error", f"{APP_NAME}: {e}", "dialog-error", INFORMATIONAL, 1.0, {"subtext": _("Keystore")})]
+        cmd, _sep, arg = flt.partition(" ")
         if cmd.casefold() == "add":
             return self._add_matches(arg.strip())
         if cmd.casefold() in ("export", "rm", "rename"):
@@ -106,9 +114,7 @@ class Runner:
         f = flt.casefold()
         names = [n for n in accounts if f in n.casefold()]
         if not names:
-            text = "No hay cuentas" if not accounts else f"Ninguna cuenta coincide con «{flt}»"
-            return [("none", text, "dialog-information", INFORMATIONAL, 0.5, {}),
-                    self._helper("add", "Añadir una cuenta…", "list-add")]
+            return [self._no_match(accounts, flt), self._helper("add", _("Add an account…"), "list-add")]
         now = time.time()
         out = []
         for i, name in enumerate(names):
@@ -118,23 +124,23 @@ class Runner:
             # Enter copia siempre el código vigente (se calcula en Run).
             mode = self.cfg.show_codes
             if a.type == "hotp":
-                text, sub = name, "HOTP: Enter genera y copia el siguiente código"
+                text, sub = name, _("HOTP: Enter generates and copies the next code")
             elif mode == "always":
                 expires = now + a.remaining(now)
                 text = f"{fmt_code(a.code(now))}   {name}"
-                sub = (f"vale hasta las {time.strftime('%H:%M:%S', time.localtime(expires))}"
-                       f"  ·  después: {fmt_code(a.code(expires))}")
+                sub = _("valid until {time}  ·  next: {code}").format(
+                    time=time.strftime("%H:%M:%S", time.localtime(expires)), code=fmt_code(a.code(expires)))
             elif mode == "selected":
                 # Plasma 5 solo muestra el subtítulo de la línea seleccionada.
                 text, sub = name, fmt_code(a.code(now))
             else:  # never
-                text, sub = name, "Enter copia el código"
+                text, sub = name, _("Enter copies the code")
             exact = name.casefold() == f
             relevance = 1.0 if exact else max(0.5, 0.99 - i * 0.001)
             out.append((f"code{SEP}{name}", text, ICON, EXACT, relevance,
                         {"subtext": sub, "category": "OTP"}))
         if not f:
-            out.append(self._helper("add", "Añadir una cuenta…", "list-add"))
+            out.append(self._helper("add", _("Add an account…"), "list-add"))
         return out
 
     def _helper(self, sub: str, text: str, icon: str) -> tuple:
@@ -147,18 +153,21 @@ class Runner:
         f = flt.casefold()
         names = [n for n in accounts if f in n.casefold()]
         if not names:
-            text = "No hay cuentas" if not accounts else f"Ninguna cuenta coincide con «{flt}»"
-            return [("none", text, "dialog-information", INFORMATIONAL, 0.5, {})]
+            return [self._no_match(accounts, flt)]
         if cmd == "export":
-            what = f"{len(names)} cuenta" + ("s" if len(names) != 1 else "")
-            hint = "" if flt else f"  ·  filtra con: {self.cfg.keywords[0]} export <texto>"
-            return [(f"export{SEP}{flt}", f"Exportar {what} como QR para Google Authenticator",
-                     "document-export", EXACT, 1.0,
-                     {"subtext": "Muestra los secretos en pantalla (pide confirmación)" + hint, "category": "OTP"})]
-        verb, icon = ("Borrar", "edit-delete") if cmd == "rm" else ("Renombrar", "edit-rename")
-        dots = "" if cmd == "rm" else "…"
-        return [(f"{cmd}{SEP}{n}", f"{verb} «{n}»{dots}", icon, EXACT, max(0.5, 0.99 - i * 0.001),
-                 {"subtext": "Pide confirmación" if cmd == "rm" else "Pide el nombre nuevo", "category": "OTP"})
+            text = ngettext("Export {n} account as a QR code for Google Authenticator",
+                            "Export {n} accounts as QR codes for Google Authenticator",
+                            len(names)).format(n=len(names))
+            sub = _("Shows the secrets on screen (asks for confirmation)")
+            if not flt:
+                sub += "  ·  " + _("filter with: {keyword} export <text>").format(keyword=self.cfg.keywords[0])
+            return [(f"export{SEP}{flt}", text, "document-export", EXACT, 1.0, {"subtext": sub, "category": "OTP"})]
+        if cmd == "rm":
+            label, icon, sub = _("Delete “{name}”"), "edit-delete", _("Asks for confirmation")
+        else:
+            label, icon, sub = _("Rename “{name}”…"), "edit-rename", _("Asks for the new name")
+        return [(f"{cmd}{SEP}{n}", label.format(name=n), icon, EXACT, max(0.5, 0.99 - i * 0.001),
+                 {"subtext": sub, "category": "OTP"})
                 for i, n in enumerate(names[:20])]
 
     async def _manage(self, cmd: str, arg: str) -> None:
@@ -167,18 +176,20 @@ class Runner:
             if cmd == "export":
                 await self._export(arg)
             elif cmd == "rm":
-                if await dialogs.confirm(APP_NAME, f"¿Borrar la cuenta «{arg}»?\n\nNo se puede deshacer: "
-                                         "asegúrate de tener otra forma de acceder.", ok_label="Borrar"):
+                text = _("Delete the account “{name}”?\n\nThis cannot be undone: make sure you have "
+                         "another way to sign in.").format(name=arg)
+                if await dialogs.confirm(APP_NAME, text, ok_label=_("Delete")):
                     if await store.delete(arg):
-                        await notify(self.bus, f"Borrada: {arg}")
+                        await notify(self.bus, _("Deleted: {name}").format(name=arg))
             elif cmd == "rename":
-                new = await dialogs.ask_text(APP_NAME, f"Nuevo nombre para «{arg}»:", arg)
+                new = await dialogs.ask_text(APP_NAME, _("New name for “{name}”:").format(name=arg), arg)
                 if new and new != arg:
                     await store.rename(arg, new)
-                    await notify(self.bus, f"Renombrada: {arg} → {new}")
+                    await notify(self.bus, _("Renamed: {old} → {new}").format(old=arg, new=new))
         except Exception as e:  # noqa: BLE001
-            log.exception("error en %s %s", cmd, arg)
-            await notify(self.bus, f"{APP_NAME}: no se pudo completar «{cmd}»", str(e), error=True)
+            log.exception("error in %s %s", cmd, arg)
+            await notify(self.bus, _("{app}: could not complete “{command}”").format(app=APP_NAME, command=cmd),
+                         str(e), error=True)
         finally:
             self.forget()
 
@@ -186,40 +197,50 @@ class Runner:
         f = flt.casefold()
         accounts = {n: a for n, a in (await self.accounts(refresh=True)).items() if f in n.casefold()}
         exp = exporting.build(accounts)
+        skipped = "\n".join(f"{n}: {r}" for n, r in exp.skipped)
         if not exp.uris:
-            await notify(self.bus, "Nada que exportar", "\n".join(f"{n}: {r}" for n, r in exp.skipped), error=True)
+            await notify(self.bus, _("Nothing to export"), skipped, error=True)
             return
         n = len(exp.uris)
-        msg = (f"Se van a mostrar en pantalla {len(exp.exported)} secretos en {n} código"
-               f"{'s' if n > 1 else ''} QR.\n\nCualquiera que vea o fotografíe la pantalla podrá "
-               "copiar esas cuentas. ¿Continuar?")
-        if not await dialogs.confirm(f"{APP_NAME}: exportar", msg, ok_label="Mostrar QR"):
+        secrets_txt = ngettext("{n} secret", "{n} secrets", len(exp.exported)).format(n=len(exp.exported))
+        codes_txt = ngettext("{n} QR code", "{n} QR codes", n).format(n=n)
+        msg = _("{secrets} will be shown on screen in {codes}.\n\nAnyone who sees or photographs the screen "
+                "can copy those accounts. Continue?").format(secrets=secrets_txt, codes=codes_txt)
+        if not await dialogs.confirm(_("{app}: export").format(app=APP_NAME), msg, ok_label=_("Show QR")):
             return
         d = capture.private_dir()
         for i, uri in enumerate(exp.uris, 1):
             path = exporting.write_png(uri, d)
             try:
-                await dialogs.show_image(path, f"{APP_NAME}: QR {i} de {n} — escanéalo con Google Authenticator")
+                title = _("{app}: QR {i} of {n} — scan it with Google Authenticator").format(app=APP_NAME, i=i, n=n)
+                await dialogs.show_image(path, title)
             finally:
                 path.unlink(missing_ok=True)
         if exp.skipped:
-            await notify(self.bus, "Algunas cuentas no se exportaron",
-                         "\n".join(f"{n}: {r}" for n, r in exp.skipped), icon="dialog-warning")
+            await notify(self.bus, _("Some accounts were not exported"), skipped, icon="dialog-warning")
 
     def _add_matches(self, name: str) -> list:
-        target = f"«{name}»" if name else "cuenta"
-        hint = "" if name else "  ·  nombre opcional: otp add <nombre>"
+        if name:
+            screen = _("Add “{name}” from a QR code on screen").format(name=name)
+            clip = _("Add “{name}” from the clipboard").format(name=name)
+            cam = _("Add “{name}” with the camera").format(name=name)
+            hint = ""
+        else:
+            screen = _("Add an account from a QR code on screen")
+            clip = _("Add an account from the clipboard")
+            cam = _("Add an account with the camera")
+            hint = "  ·  " + _("optional name: {keyword} add <name>").format(keyword=self.cfg.keywords[0])
+        cam_sub = (_("Show the QR code (or those of a Google export) to the camera") if camera.providers()
+                   else _("Requires {hint}").format(hint=camera.install_hint()))
         return [
-            (f"add{SEP}screen{SEP}{name}", f"Añadir {target} desde un QR en pantalla", "spectacle",
-             EXACT, 1.0, {"subtext": "Selecciona la zona con el QR (vale una exportación de Google)" + hint,
-                          "category": "OTP"}),
-            (f"add{SEP}clipboard{SEP}{name}", f"Añadir {target} desde el portapapeles", "edit-paste",
-             EXACT, 0.9, {"subtext": "URI otpauth:// u otpauth-migration://, o imagen con el QR" + hint,
-                          "category": "OTP"}),
-            (f"add{SEP}camera{SEP}{name}", f"Añadir {target} con la cámara", "camera-web",
-             EXACT, 0.8, {"subtext": ("Enseña el QR (o los de una exportación de Google) a la cámara"
-                                      if camera.providers() else "Requiere " + camera.install_hint()) + hint,
-                          "category": "OTP"}),
+            (f"add{SEP}screen{SEP}{name}", screen, "spectacle", EXACT, 1.0,
+             {"subtext": _("Select the area with the QR code (a Google export works too)") + hint,
+              "category": "OTP"}),
+            (f"add{SEP}clipboard{SEP}{name}", clip, "edit-paste", EXACT, 0.9,
+             {"subtext": _("otpauth:// or otpauth-migration:// URI, or an image of the QR code") + hint,
+              "category": "OTP"}),
+            (f"add{SEP}camera{SEP}{name}", cam, "camera-web", EXACT, 0.8,
+             {"subtext": cam_sub + hint, "category": "OTP"}),
         ]
 
     async def _query(self, text: str) -> None:
@@ -228,11 +249,12 @@ class Runner:
         try:
             await call(self.bus, "org.kde.krunner", "/App", "org.kde.krunner.App", "query", "s", [text])
         except Exception as e:  # noqa: BLE001
-            log.warning("no se pudo reabrir KRunner: %s", e)
+            log.warning("could not reopen KRunner: %s", e)
 
     async def _add(self, source: str, name: str) -> None:
         try:
             store = await self._get_store()
+
             def progress(msg: str) -> None:
                 if self.bus is not None:
                     asyncio.get_running_loop().create_task(
@@ -243,27 +265,28 @@ class Runner:
         except capture.CaptureCancelled:
             return
         except Exception as e:  # noqa: BLE001
-            log.exception("error añadiendo desde %s", source)
+            log.exception("error adding from %s", source)
             if self.bus is not None:
-                await notify(self.bus, f"{APP_NAME}: no se pudo añadir", str(e), error=True)
+                await notify(self.bus, _("{app}: could not add the account").format(app=APP_NAME), str(e),
+                             error=True)
             return
         finally:
             self.forget()
         title, body = outcome.summary()
-        log.info("alta desde %s: %s %s", source, title, body.replace("\n", " | "))
+        log.info("added from %s: %s %s", source, title, body.replace("\n", " | "))
         if self.bus is not None:
             await notify(self.bus, title, body, icon=ICON if outcome.ok else "dialog-warning",
                          error=not outcome.ok and bool(outcome.parsed.errors))
 
     async def run(self, match_id: str, action_id: str) -> None:
         self.last_activity = time.monotonic()
-        kind, _, name = match_id.partition(SEP)
+        kind, _sep, name = match_id.partition(SEP)
         if kind == "query":
             await asyncio.sleep(0.2)  # dejar que KRunner se cierre antes de reabrirlo
             await self._query(name)
             return
         if kind == "add":
-            source, _, acc_name = name.partition(SEP)
+            source, _sep, acc_name = name.partition(SEP)
             await self._add(source, acc_name)
             return
         if kind in ("export", "rm", "rename"):
@@ -275,21 +298,22 @@ class Runner:
             accounts = await self.accounts()
             acc = accounts.get(name)
             if acc is None:
-                raise StoreError(f"la cuenta «{name}» ya no existe")
+                raise StoreError(_("the account “{name}” no longer exists").format(name=name))
             code = acc.code()
             if acc.type == "hotp":
                 store = await self._get_store()
                 await store.put(name, acc.with_counter(acc.counter + 1), replace=True)
                 self.forget()
             provider = await clipboard.copy(code, self.bus)
-            log.info("código de %s copiado (%s)", name, provider)
+            log.info("code for %s copied (%s)", name, provider)
             if self.bus is not None:
-                await notify(self.bus, f"Código de {name} copiado",
+                await notify(self.bus, _("Code for {name} copied").format(name=name),
                              timeout_ms=2000, transient=True)
         except Exception as e:  # noqa: BLE001 — el servicio no debe caerse por un Run
-            log.exception("error ejecutando %s", name)
+            log.exception("error running %s", name)
             if self.bus is not None:
-                await notify(self.bus, f"{APP_NAME}: no se pudo copiar", str(e), error=True)
+                await notify(self.bus, _("{app}: could not copy the code").format(app=APP_NAME), str(e),
+                             error=True)
 
 
 class KRunnerInterface(ServiceInterface):
@@ -302,7 +326,7 @@ class KRunnerInterface(ServiceInterface):
         try:
             matches = await self.runner.match(query)
         except Exception:  # noqa: BLE001
-            log.exception("error en Match")
+            log.exception("error in Match")
             return []
         return [[i, t, ic, ty, r, {k: Variant("s", v) for k, v in props.items()}]
                 for i, t, ic, ty, r, props in matches]
@@ -324,16 +348,17 @@ class KRunnerInterface(ServiceInterface):
 
 async def serve(idle_timeout: float | None = None) -> int:
     cfg = config.load()
+    i18n.setup(cfg.language)
     idle = cfg.idle_timeout if idle_timeout is None else idle_timeout
     bus = await MessageBus().connect()
     runner = Runner(cfg, lambda: open_store(cfg.backend, bus=bus), bus=bus)
     bus.export(OBJECT_PATH, KRunnerInterface(runner))
     reply = await bus.request_name(BUS_NAME)
     if reply not in (RequestNameReply.PRIMARY_OWNER, RequestNameReply.ALREADY_OWNER):
-        log.error("%s ya está en uso por otro proceso", BUS_NAME)
+        log.error("%s is already owned by another process", BUS_NAME)
         bus.disconnect()
         return 1
-    log.info("otprunner escuchando en %s%s (palabras clave: %s, cierre tras %ss inactivo)",
+    log.info("listening on %s%s (keywords: %s, idle exit after %ss)",
              BUS_NAME, OBJECT_PATH, ", ".join(cfg.keywords), idle or "∞")
 
     disconnected = asyncio.ensure_future(bus.wait_for_disconnect())
@@ -341,7 +366,7 @@ async def serve(idle_timeout: float | None = None) -> int:
         while not disconnected.done():
             await asyncio.wait([disconnected], timeout=15)
             if idle and time.monotonic() - runner.last_activity > idle:
-                log.info("inactivo %ss: saliendo (DBus lo volverá a lanzar)", idle)
+                log.info("idle for %ss: exiting (DBus will start it again)", idle)
                 break
     finally:
         await runner.reset_store()

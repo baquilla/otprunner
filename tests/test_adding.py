@@ -9,7 +9,7 @@ async def test_add_uri_with_name():
     s = MemoryStore()
     out = await adding.add(s, "uri", None, name="Trabajo", uri=A.to_uri())
     assert out.ok and await s.names() == ["Trabajo"]
-    assert out.summary()[0] == "Añadida: Trabajo"
+    assert out.summary()[0] == "Added: Trabajo"
 
 
 async def test_add_clipboard_text_then_image(monkeypatch):
@@ -35,12 +35,12 @@ async def test_summary_batches_and_errors():
     s = MemoryStore()
     out = await adding.add(s, "uri", None, uri=uris[0] + " otpauth://totp/x?secret=1")
     title, body = out.summary()
-    assert title == "Añadidas 2 cuentas"
-    assert "lote 1 de 2 — captura el siguiente QR" in body and "secreto base32" in body
+    assert title == "Added 2 accounts"
+    assert "batch 1 of 2 — capture the next QR code" in body and "base32" in body
     out = await adding.add(s, "uri", None, uri=uris[0])
-    assert out.summary()[0] == "Nada nuevo que añadir"
+    assert out.summary()[0] == "Nothing new to add"
     out = await adding.add(s, "uri", None, uri="hola")
-    assert not out.ok and out.summary()[0] == "No se encontró ningún código otpauth"
+    assert not out.ok and out.summary()[0] == "No otpauth code found"
 
 
 def test_decode_qr_roundtrip(tmp_path):

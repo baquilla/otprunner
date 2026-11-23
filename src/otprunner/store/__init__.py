@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ..otpauth import Account
+from ..i18n import _
 from .base import Store, StoreError, StoreUnavailable
 from .memory import MemoryStore
 
@@ -23,9 +24,9 @@ async def open_store(backend: str = "auto", app: str = "otprunner", bus=None) ->
     reasons = []
     for name in order:
         if name not in impl:
-            raise StoreError(f"backend desconocido: {name} (válidos: auto, {', '.join(BACKENDS)})")
+            raise StoreError(_("unknown backend: {name} (valid: auto, {valid})").format(name=name, valid=", ".join(BACKENDS)))
         try:
             return await impl[name].open(app=app, bus=bus)
         except StoreUnavailable as e:
             reasons.append(f"{name}: {e}")
-    raise StoreUnavailable("no hay ningún keystore disponible:\n  " + "\n  ".join(reasons))
+    raise StoreUnavailable(_("no keystore available:") + "\n  " + "\n  ".join(reasons))

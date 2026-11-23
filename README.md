@@ -15,6 +15,7 @@ con los secretos guardados en el keystore del sistema y CLI equivalente.
   portapapeles o cámara.
 - Import y export en formato `otpauth://` y `otpauth-migration://` (Google Authenticator),
   incluido export como QR para pasar cuentas al móvil.
+- Interfaz en inglés y español: sigue el idioma del escritorio (o `language` en la configuración).
 - Funciona en Plasma 5.27 y 6, X11 y Wayland; usa la herramienta disponible en cada caso
   (portal XDG, spectacle, Klipper, wl-copy, xclip…). `otprunner doctor` dice qué usa y qué falta.
 
@@ -73,6 +74,7 @@ keywords = ["otp", "otpr"]  # palabras clave en KRunner
 idle_timeout = 600          # segundos sin uso antes de cerrar el servicio (0 = nunca)
 show_codes = "selected"     # selected | always | never
 camera = "/dev/video0"      # opcional: dispositivo de la cámara
+language = "es"             # opcional: idioma de la interfaz (por defecto, el del escritorio)
 ```
 
 `show_codes`:
@@ -119,6 +121,16 @@ KRunner no refresca los resultados hasta que cambia la búsqueda; Enter copia si
 uv venv && uv pip install -e '.[dev]'
 pytest
 ```
+
+Traducciones (gettext; el inglés es el idioma fuente, catálogos en `src/otprunner/locale/`):
+
+```bash
+scripts/i18n.sh update     # tras cambiar textos: extrae y actualiza los .po
+scripts/i18n.sh init fr    # idioma nuevo
+scripts/i18n.sh compile    # genera los .mo (van en el paquete)
+```
+
+Los tests fallan si queda alguna cadena sin traducir o un `.mo` desactualizado.
 
 Para depurar el runner: `systemctl --user stop otprunner` y lanzar `otprunner serve -v`
 en una terminal; KRunner hablará con ese proceso.

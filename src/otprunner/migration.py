@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from urllib.parse import parse_qs, quote, urlsplit
 
 from .otpauth import Account, OtpError, clean_text
+from .i18n import _
 
 SCHEME = "otpauth-migration"
 # Google Authenticator no lee bien QR más densos.
@@ -46,7 +47,7 @@ def _varint(b: bytes, i: int) -> tuple[int, int]:
     r = s = 0
     while True:
         if i >= len(b):
-            raise OtpError("protobuf truncado")
+            raise OtpError(_("truncated protobuf"))
         c = b[i]
         i += 1
         r |= (c & 0x7F) << s
@@ -65,14 +66,14 @@ def _fields(b: bytes):
         elif wt == 2:
             n, i = _varint(b, i)
             if i + n > len(b):
-                raise OtpError("protobuf truncado")
+                raise OtpError(_("truncated protobuf"))
             v, i = b[i : i + n], i + n
         elif wt == 1:
             v, i = b[i : i + 8], i + 8
         elif wt == 5:
             v, i = b[i : i + 4], i + 4
         else:
-            raise OtpError(f"protobuf: wire type {wt} no soportado")
+            raise OtpError(_("protobuf: unsupported wire type {type}").format(type=wt))
         yield num, v
 
 
@@ -105,16 +106,16 @@ def is_migration_uri(text: str) -> bool:
 def decode(uri: str) -> Batch:
     parts = urlsplit(uri.strip())
     if parts.scheme.lower() != SCHEME:
-        raise OtpError("no es una URI otpauth-migration://")
+        raise OtpError(_("not an otpauth-migration:// URI"))
     data = parse_qs(parts.query).get("data")
     if not data:
-        raise OtpError("falta el parámetro data")
+        raise OtpError(_("missing data parameter"))
     # parse_qs convierte '+' sin escapar en espacio
     raw = data[0].replace(" ", "+")
     try:
         payload = base64.b64decode(raw + "=" * (-len(raw) % 4), altchars=b"+/", validate=False)
     except ValueError as e:
-        raise OtpError(f"data no es base64 válido: {e}") from None
+        raise OtpError(_("data is not valid base64: {error}").format(error=e)) from None
 
     accounts: list[Account] = []
     meta = {3: 1, 4: 0, 5: 0}
@@ -151,9 +152,9 @@ def _decode_params(b: bytes) -> Account:
 
 def _encode_params(a: Account) -> bytes:
     if a.digits not in _DIG_R:
-        raise OtpError(f"{a.label}: otpauth-migration solo admite 6 u 8 dígitos")
+        raise OtpError(_("{name}: otpauth-migration only supports 6 or 8 digits").format(name=a.label))
     if a.type == "totp" and a.period != 30:
-        raise OtpError(f"{a.label}: otpauth-migration solo admite periodo de 30 s")
+        raise OtpError(_("{name}: otpauth-migration only supports a 30 s period").format(name=a.label))
     out = _f_bytes(1, a.secret) + _f_bytes(2, a.name.encode()) + _f_bytes(3, a.issuer.encode())
     out += _f_varint(4, _ALG_R[a.algorithm]) + _f_varint(5, _DIG_R[a.digits]) + _f_varint(6, _TYP_R[a.type])
     if a.type == "hotp":

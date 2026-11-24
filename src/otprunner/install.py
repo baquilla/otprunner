@@ -73,12 +73,10 @@ def install_icons() -> list[Path]:
 
 
 def legacy_paths() -> list[Path]:
-    """Restos de versiones anteriores: kservices5 + org.kde.otprunner, y el nombre DBus
-    net.bacamt.otprunner de las versiones previas a la publicación."""
+    """Restos de la versión antigua (kservices5 + org.kde.otprunner)."""
     return [
         _data_home() / "kservices5/otprunner.desktop",
         _data_home() / "dbus-1/services/otprunner.service",
-        _data_home() / "dbus-1/services/net.bacamt.otprunner.service",
     ]
 
 

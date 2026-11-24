@@ -28,7 +28,10 @@ def _env() -> list[tuple[str, str]]:
         (_("Session"), os.environ.get("XDG_SESSION_TYPE", "?")),
         (_("Desktop"), os.environ.get("XDG_CURRENT_DESKTOP", "?")),
         ("Plasma", os.environ.get("KDE_SESSION_VERSION", _("no"))),
-        (_("Config"), str(config.config_path()) + ("" if config.config_path().exists() else " " + _("(missing, using defaults)"))),
+        (
+            _("Config"),
+            str(config.config_path()) + ("" if config.config_path().exists() else " " + _("(missing, using defaults)")),
+        ),
         (_("Language"), i18n_status()),
     ]
 

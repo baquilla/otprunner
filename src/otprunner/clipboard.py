@@ -38,8 +38,9 @@ async def copy(text: str, bus=None) -> str:
     if bus is not None:
         try:
             if await name_available(bus, "org.kde.klipper"):
-                await call(bus, "org.kde.klipper", "/klipper", "org.kde.klipper.klipper",
-                           "setClipboardContents", "s", [text])
+                await call(
+                    bus, "org.kde.klipper", "/klipper", "org.kde.klipper.klipper", "setClipboardContents", "s", [text]
+                )
                 return "klipper"
         except DBusCallError as e:
             errors.append(f"klipper: {e}")
@@ -48,8 +49,10 @@ async def copy(text: str, bus=None) -> str:
             # xclip/xsel/wl-copy se quedan en segundo plano sirviendo la selección:
             # no capturamos su salida para no esperar a que terminen.
             proc = await asyncio.create_subprocess_exec(
-                *cmd, stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL,
+                *cmd,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.DEVNULL,
                 start_new_session=True,
             )
             proc.stdin.write(text.encode())

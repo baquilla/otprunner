@@ -37,7 +37,6 @@ def test_install_icons(tmp_path, monkeypatch):
     assert all(p in install.paths().values() for p in out)
 
 
-
 def test_install_writes_dbus_files(tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))

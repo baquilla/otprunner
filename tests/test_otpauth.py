@@ -72,10 +72,10 @@ def test_control_chars_cleaned():
 @pytest.mark.parametrize(
     "path,issuer,label",
     [
-        ("alice", "", "alice"),                              # sin issuer: la etiqueta tal cual
-        ("GitHub:alice", "", "GitHub:alice"),                # nunca se parte por «:» ni se deduce issuer
-        ("alice", "GitHub", "GitHub:alice"),                 # el issuer se antepone
-        ("GitHub:alice", "GitHub", "GitHub:alice"),          # …salvo que ya esté como prefijo
+        ("alice", "", "alice"),  # sin issuer: la etiqueta tal cual
+        ("GitHub:alice", "", "GitHub:alice"),  # nunca se parte por «:» ni se deduce issuer
+        ("alice", "GitHub", "GitHub:alice"),  # el issuer se antepone
+        ("GitHub:alice", "GitHub", "GitHub:alice"),  # …salvo que ya esté como prefijo
         ("PayPal:PayPal:yo", "PayPal", "PayPal:PayPal:yo"),  # nunca se recorta
         ("x:y", "GitHub", "GitHub:x:y"),
     ],

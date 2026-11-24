@@ -18,8 +18,9 @@ class Export:
     skipped: list[tuple[str, str]] = field(default_factory=list)  # (nombre, motivo)
 
 
-def build(accounts: dict[str, Account], batch_size: int = migration.DEFAULT_BATCH,
-          single_otpauth: bool = True) -> Export:
+def build(
+    accounts: dict[str, Account], batch_size: int = migration.DEFAULT_BATCH, single_otpauth: bool = True
+) -> Export:
     """Codifica las cuentas compatibles; las demás se listan en ``skipped``.
 
     Con una sola cuenta (y ``single_otpauth``) se exporta su URI ``otpauth://`` tal cual.
@@ -50,8 +51,9 @@ def write_png(uri: str, directory: Path, scale: int = 6) -> Path:
     return path
 
 
-def write_sheet(uris: list[str], captions: list[str], directory: Path,
-                max_width: int = 1280, max_height: int = 760) -> Path:
+def write_sheet(
+    uris: list[str], captions: list[str], directory: Path, max_width: int = 1280, max_height: int = 760
+) -> Path:
     """Todos los QR en una sola imagen, en rejilla y con su pie («1/2»…), del mismo tamaño."""
     import io
     import math
@@ -64,14 +66,16 @@ def write_sheet(uris: list[str], captions: list[str], directory: Path,
     rows = math.ceil(n / cols)
     gap, caption_h = 24, 40
     # Por debajo de ~180 px el móvil ya no lee bien un QR de 10 cuentas.
-    size = max(min((max_width - gap * (cols + 1)) // cols, (max_height - (gap + caption_h) * rows - gap) // rows, 480), 180)
+    size = max(
+        min((max_width - gap * (cols + 1)) // cols, (max_height - (gap + caption_h) * rows - gap) // rows, 480), 180
+    )
     try:
         font = ImageFont.load_default(size=24)
     except TypeError:  # Pillow < 10.1
         font = ImageFont.load_default()
     sheet = Image.new("RGB", (cols * size + gap * (cols + 1), rows * (size + caption_h + gap) + gap), "white")
     draw = ImageDraw.Draw(sheet)
-    for i, (uri, caption) in enumerate(zip(uris, captions)):
+    for i, (uri, caption) in enumerate(zip(uris, captions, strict=True)):
         buf = io.BytesIO()
         segno.make(uri, error="m").save(buf, kind="png", scale=1, border=4)
         buf.seek(0)

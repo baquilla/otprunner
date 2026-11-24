@@ -18,8 +18,8 @@ import base64
 from dataclasses import dataclass
 from urllib.parse import parse_qs, quote, urlsplit
 
-from .otpauth import Account, OtpError, clean_text
 from .i18n import _
+from .otpauth import Account, OtpError, clean_text
 
 SCHEME = "otpauth-migration"
 # Google Authenticator no lee bien QR más densos.

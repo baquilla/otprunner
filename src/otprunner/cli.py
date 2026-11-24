@@ -114,8 +114,15 @@ async def _cmd(args, cfg) -> int:
                 print(_("Show the QR code to the camera (close the window to cancel)…"), file=sys.stderr)
             bus = await session_bus()
             try:
-                outcome = await adding.add(store, source, bus, name=args.name, uri=args.uri, device=cfg.camera,
-                                           progress=lambda msg: print(msg, file=sys.stderr))
+                outcome = await adding.add(
+                    store,
+                    source,
+                    bus,
+                    name=args.name,
+                    uri=args.uri,
+                    device=cfg.camera,
+                    progress=lambda msg: print(msg, file=sys.stderr),
+                )
             except capture.CaptureCancelled:
                 print(_("cancelled"), file=sys.stderr)
                 return 1
@@ -149,10 +156,13 @@ async def _cmd(args, cfg) -> int:
                     else:
                         print(accounts[n].to_uri())
                 return 0
-            exp = exporting.build({n: accounts[n] for n in names}, batch_size=args.batch,
-                                  single_otpauth=args.format == "auto")
+            exp = exporting.build(
+                {n: accounts[n] for n in names}, batch_size=args.batch, single_otpauth=args.format == "auto"
+            )
             for n, reason in exp.skipped:
-                print(_("skipped {name}: {reason} (use --format otpauth)").format(name=n, reason=reason), file=sys.stderr)
+                print(
+                    _("skipped {name}: {reason} (use --format otpauth)").format(name=n, reason=reason), file=sys.stderr
+                )
             for i, uri in enumerate(exp.uris, 1):
                 if args.qr:
                     print(_("QR {i} of {n}").format(i=i, n=len(exp.uris)))
@@ -181,7 +191,10 @@ async def _cmd(args, cfg) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="otprunner", description=_("{app}: TOTP codes with the secrets in the system keystore.").format(app=APP_NAME))
+    p = argparse.ArgumentParser(
+        prog="otprunner",
+        description=_("{app}: TOTP codes with the secrets in the system keystore.").format(app=APP_NAME),
+    )
     p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     p.add_argument("--backend", help=_("keystore: auto, kwallet, secretservice (default: from the config)"))
     sub = p.add_subparsers(dest="cmd", required=True, metavar=_("COMMAND"))
@@ -207,8 +220,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("export", help=_("export accounts"))
     s.add_argument("filter", nargs="?")
-    s.add_argument("--format", choices=("auto", "migration", "otpauth"), default="auto",
-                   help=_("auto: otpauth for a single account, migration for several"))
+    s.add_argument(
+        "--format",
+        choices=("auto", "migration", "otpauth"),
+        default="auto",
+        help=_("auto: otpauth for a single account, migration for several"),
+    )
     s.add_argument("--batch", type=int, default=migration.DEFAULT_BATCH, help=_("accounts per migration URI"))
     s.add_argument("--qr", action="store_true", help=_("show as QR codes in the terminal"))
 
@@ -227,7 +244,9 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("serve", help=_("run the runner DBus service (started by DBus/systemd)"))
     s.add_argument("-v", "--verbose", action="store_true", help=_("debug logging"))
     s.add_argument("--idle", type=float, help=_("idle seconds before exiting (0 = never)"))
-    s.add_argument("--demo", action="store_true", help=_("serve made-up accounts instead of the keystore (for screenshots)"))
+    s.add_argument(
+        "--demo", action="store_true", help=_("serve made-up accounts instead of the keystore (for screenshots)")
+    )
     return p
 
 

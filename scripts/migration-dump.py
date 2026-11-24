@@ -55,8 +55,10 @@ def fields(b: bytes):
 def dump(uri: str, names: bool) -> None:
     q = parse_qs(urlsplit(uri.strip()).query)
     raw = q["data"][0]
-    print(f"URI: {len(uri.strip())} caracteres; data base64: {len(raw)} (padding {'sí' if raw.endswith('=') else 'no'}, "
-          f"«+» {'sí' if '+' in raw else 'no'}, «%» en la URI {'sí' if '%' in uri else 'no'})")
+    print(
+        f"URI: {len(uri.strip())} caracteres; data base64: {len(raw)} (padding {'sí' if raw.endswith('=') else 'no'}, "
+        f"«+» {'sí' if '+' in raw else 'no'}, «%» en la URI {'sí' if '%' in uri else 'no'})"
+    )
     payload = base64.b64decode(raw + "=" * (-len(raw) % 4))
     print(f"payload: {len(payload)} bytes")
     for num, wt, v, _pos in fields(payload):
@@ -72,8 +74,9 @@ def dump(uri: str, names: bool) -> None:
                 elif n2 not in OTP and wt2 == 2:
                     # Campo desconocido: su estructura, por si es un mensaje anidado (sin valores).
                     try:
-                        inner = ", ".join(f"[{a}] wt{b}" + (f"={c}" if b == 0 else f" {len(c)}B")
-                                          for a, b, c, _ in fields(v2))
+                        inner = ", ".join(
+                            f"[{a}] wt{b}" + (f"={c}" if b == 0 else f" {len(c)}B") for a, b, c, _ in fields(v2)
+                        )
                     except (ValueError, IndexError):
                         inner = "no es protobuf"
                     print(f"      [{n2}] {l2}: {len(v2)} bytes (wt {wt2}): {inner}")
@@ -91,7 +94,7 @@ def main() -> None:
     for uri in uris:
         uri = uri.strip()
         if uri.startswith("QR-Code:"):
-            uri = uri[len("QR-Code:"):]
+            uri = uri[len("QR-Code:") :]
         dump(uri, names)
         print()
 

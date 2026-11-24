@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from ..otpauth import Account
 from ..i18n import _
+from ..otpauth import Account
 from .base import Store, StoreError, StoreUnavailable
 from .memory import MemoryStore
 
-__all__ = ["Account", "MemoryStore", "Store", "StoreError", "StoreUnavailable", "open_store", "BACKENDS"]
+__all__ = ["BACKENDS", "Account", "MemoryStore", "Store", "StoreError", "StoreUnavailable", "open_store"]
 
 # KWallet nativo primero: guarda todo en una carpeta propia del monedero. Su puente
 # Secret Service mezcla los items en la carpeta «Secret Service» y trata «/» de la
@@ -24,7 +24,9 @@ async def open_store(backend: str = "auto", app: str = "otprunner", bus=None) ->
     reasons = []
     for name in order:
         if name not in impl:
-            raise StoreError(_("unknown backend: {name} (valid: auto, {valid})").format(name=name, valid=", ".join(BACKENDS)))
+            raise StoreError(
+                _("unknown backend: {name} (valid: auto, {valid})").format(name=name, valid=", ".join(BACKENDS))
+            )
         try:
             return await impl[name].open(app=app, bus=bus)
         except StoreUnavailable as e:

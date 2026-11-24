@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import abc
 
-from ..otpauth import Account, OtpError
 from ..i18n import _
+from ..otpauth import Account, OtpError
 
 
 class StoreError(RuntimeError):

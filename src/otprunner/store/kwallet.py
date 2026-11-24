@@ -6,8 +6,8 @@ Las cuentas se guardan como «passwords» en la carpeta ``<app>`` del monedero d
 from __future__ import annotations
 
 from ..dbusutil import DBusCallError, call, name_available, session_bus
-from .base import Store, StoreError, StoreUnavailable
 from ..i18n import _
+from .base import Store, StoreError, StoreUnavailable
 
 IFACE = "org.kde.KWallet"
 DAEMONS = (("org.kde.kwalletd6", "/modules/kwalletd6"), ("org.kde.kwalletd5", "/modules/kwalletd5"))
@@ -47,7 +47,9 @@ class KWalletStore(Store):
         return await call(self.bus, self.dest, self.path, IFACE, member, sig, body)
 
     async def describe(self) -> str:
-        return _("native KWallet ({service}), wallet “{wallet}”, folder “{folder}”").format(service=self.dest, wallet=self.wallet, folder=self.folder)
+        return _("native KWallet ({service}), wallet “{wallet}”, folder “{folder}”").format(
+            service=self.dest, wallet=self.wallet, folder=self.folder
+        )
 
     async def close(self) -> None:
         if self._owns_bus:

@@ -8,6 +8,7 @@ La sesión usa el algoritmo ``plain`` (el secreto viaja por el bus de sesión de
 from __future__ import annotations
 
 import asyncio
+import contextlib
 
 from dbus_fast import Message, MessageType, Variant
 
@@ -43,7 +44,9 @@ class SecretServiceStore(Store):
             if not await name_available(bus, BUS):
                 raise StoreUnavailable(_("{service} is not on the session bus").format(service=BUS))
             self = cls(bus, app, owns)
-            _out, self.session = await call(bus, BUS, SERVICE_PATH, I_SERVICE, "OpenSession", "sv", ["plain", Variant("s", "")])
+            _out, self.session = await call(
+                bus, BUS, SERVICE_PATH, I_SERVICE, "OpenSession", "sv", ["plain", Variant("s", "")]
+            )
             (self.collection,) = await call(bus, BUS, SERVICE_PATH, I_SERVICE, "ReadAlias", "s", ["default"])
             if self.collection == "/":
                 raise StoreUnavailable(_("the Secret Service has no default collection"))
@@ -59,18 +62,21 @@ class SecretServiceStore(Store):
 
     async def close(self) -> None:
         if self.session != "/":
-            try:
+            with contextlib.suppress(DBusCallError):
                 await call(self.bus, BUS, self.session, "org.freedesktop.Secret.Session", "Close")
-            except DBusCallError:
-                pass
         if self._owns_bus:
             self.bus.disconnect()
 
     async def describe(self) -> str:
         try:
             (pid,) = await call(
-                self.bus, "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus",
-                "GetConnectionUnixProcessID", "s", [BUS],
+                self.bus,
+                "org.freedesktop.DBus",
+                "/org/freedesktop/DBus",
+                "org.freedesktop.DBus",
+                "GetConnectionUnixProcessID",
+                "s",
+                [BUS],
             )
             try:
                 with open(f"/proc/{pid}/comm") as f:
@@ -100,7 +106,9 @@ class SecretServiceStore(Store):
                 fut.set_result(msg.body)
 
         rule = f"type='signal',interface='{I_PROMPT}',member='Completed',path='{prompt}'"
-        await call(self.bus, "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "AddMatch", "s", [rule])
+        await call(
+            self.bus, "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "AddMatch", "s", [rule]
+        )
         self.bus.add_message_handler(handler)
         try:
             await call(self.bus, BUS, prompt, I_PROMPT, "Prompt", "s", [""])
@@ -144,9 +152,7 @@ class SecretServiceStore(Store):
         await self._unlock()
         props = {
             f"{I_ITEM}.Label": Variant("s", f"{APP_NAME}: {name}"),
-            f"{I_ITEM}.Attributes": Variant(
-                "a{ss}", {"application": self.app, "account": name, "xdg:schema": SCHEMA}
-            ),
+            f"{I_ITEM}.Attributes": Variant("a{ss}", {"application": self.app, "account": name, "xdg:schema": SCHEMA}),
         }
         secret = [self.session, b"", uri.encode("utf-8"), "text/plain; charset=utf8"]
         _item, prompt = await call(

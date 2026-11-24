@@ -20,6 +20,8 @@ from .otpauth import OtpError
 log = logging.getLogger(__name__)
 
 SCAN_TIMEOUT = 180
+
+
 def window_title() -> str:
     return _("{app}: show the QR code to the camera (Esc or close to cancel)").format(app=APP_NAME)
 
@@ -86,8 +88,11 @@ class Collector:
             if len(got) >= b.batch_size:
                 self.done = True
             else:
-                self.progress(_("Batch {i} of {n} read ({got}/{n}): show the next QR code").format(
-                    i=b.batch_index + 1, n=b.batch_size, got=len(got)))
+                self.progress(
+                    _("Batch {i} of {n} read ({got}/{n}): show the next QR code").format(
+                        i=b.batch_index + 1, n=b.batch_size, got=len(got)
+                    )
+                )
         else:
             log.info("QR code ignored: not otpauth")
         return self.done
@@ -98,8 +103,7 @@ async def _zbarcam(device: str | None, col: Collector) -> None:
     cmd = ["zbarcam", "-q", "--nodbus", "-Sdisable", "-Sqrcode.enable"]
     if device:
         cmd.append(device)
-    proc = await asyncio.create_subprocess_exec(
-        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+    proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     try:
         while True:
             line = await proc.stdout.readline()
@@ -123,8 +127,11 @@ async def _zbarcam(device: str | None, col: Collector) -> None:
         except asyncio.TimeoutError:  # algún hijo mantiene stderr abierto
             err = ""
     if proc.returncode not in (0, None, -15) and not col.texts:
-        raise CameraError(_("zbarcam failed ({rc}): {detail}").format(
-            rc=proc.returncode, detail=err.splitlines()[-1] if err else _("no details")))
+        raise CameraError(
+            _("zbarcam failed ({rc}): {detail}").format(
+                rc=proc.returncode, detail=err.splitlines()[-1] if err else _("no details")
+            )
+        )
 
 
 def _opencv_blocking(device: str | None, col: Collector, deadline: float) -> None:
@@ -156,8 +163,9 @@ def _opencv_blocking(device: str | None, col: Collector, deadline: float) -> Non
         cv2.destroyAllWindows()
 
 
-async def scan(device: str | None = None, progress: Callable[[str], None] | None = None,
-               timeout: float = SCAN_TIMEOUT) -> list[str]:
+async def scan(
+    device: str | None = None, progress: Callable[[str], None] | None = None, timeout: float = SCAN_TIMEOUT
+) -> list[str]:
     """Devuelve los textos otpauth leídos (vacío si el usuario cerró sin leer nada)."""
     provs = providers()
     if not provs:

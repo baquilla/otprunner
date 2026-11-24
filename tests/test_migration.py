@@ -14,14 +14,25 @@ def test_decode_sample():
     batch = migration.decode(SAMPLE)
     (a,) = batch.accounts
     assert b32encode(a.secret) == "JBSWY3DPEHPK3PXP"
-    assert (a.issuer, a.name, a.type, a.digits, a.algorithm) == ("Example", "Example:alice@google.com", "totp", 6, "SHA1")
+    assert (a.issuer, a.name, a.type, a.digits, a.algorithm) == (
+        "Example",
+        "Example:alice@google.com",
+        "totp",
+        6,
+        "SHA1",
+    )
     assert (batch.batch_size, batch.batch_index) == (1, 0)
 
 
 def _accounts(n):
     return [
-        Account(secret=bytes([i + 1]) * 10, name=f"user{i}@x.org", issuer=f"Svc{i}", digits=8 if i % 2 else 6,
-                algorithm=["SHA1", "SHA256", "SHA512"][i % 3])
+        Account(
+            secret=bytes([i + 1]) * 10,
+            name=f"user{i}@x.org",
+            issuer=f"Svc{i}",
+            digits=8 if i % 2 else 6,
+            algorithm=["SHA1", "SHA256", "SHA512"][i % 3],
+        )
         for i in range(n)
     ]
 
@@ -57,7 +68,9 @@ def test_unsupported_period():
         migration.encode([Account(secret=b"x" * 10, name="p", period=60)])
 
 
-@pytest.mark.parametrize("uri", ["otpauth-migration://offline", "otpauth-migration://offline?data=CjEK", "otpauth://totp/x?secret=AA"])
+@pytest.mark.parametrize(
+    "uri", ["otpauth-migration://offline", "otpauth-migration://offline?data=CjEK", "otpauth://totp/x?secret=AA"]
+)
 def test_decode_invalid(uri):
     with pytest.raises(OtpError):
         migration.decode(uri)

@@ -59,7 +59,8 @@ async def test_import_name_only_for_single():
     s = MemoryStore()
     assert (await importer.import_accounts(s, [A], name="mio")).added == ["mio"]
     assert (await importer.import_accounts(s, [B, Account(secret=b"z" * 10, name="z")], name="x")).added == [
-        "GitHub:bob", "z"
+        "GitHub:bob",
+        "z",
     ]
 
 

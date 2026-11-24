@@ -17,6 +17,7 @@ import os
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+
 from .i18n import _
 
 if sys.version_info >= (3, 11):
@@ -66,8 +67,11 @@ def load(path: Path | None = None) -> Config:
     if show in SHOW_CODES:
         cfg.show_codes = show
     elif show is not None:
-        print("otprunner: " + _("invalid show_codes={value} (use {valid})").format(
-            value=repr(show), valid=", ".join(SHOW_CODES)), file=sys.stderr)
+        print(
+            "otprunner: "
+            + _("invalid show_codes={value} (use {valid})").format(value=repr(show), valid=", ".join(SHOW_CODES)),
+            file=sys.stderr,
+        )
     limit = data.get("max_results")
     if isinstance(limit, int) and not isinstance(limit, bool) and limit >= 3:
         cfg.max_results = limit

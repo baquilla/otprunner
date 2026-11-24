@@ -23,8 +23,10 @@ def make(store, show_codes="always", **kw):
     return runner.Runner(config.Config(show_codes=show_codes), factory, **kw)
 
 
-@pytest.mark.parametrize("q,expected", [("otp", ""), ("OTP  pay ", "pay"), ("otpr git", "git"), ("otpx", None),
-                                        ("hola otp", None), ("", None)])
+@pytest.mark.parametrize(
+    "q,expected",
+    [("otp", ""), ("OTP  pay ", "pay"), ("otpr git", "git"), ("otpx", None), ("hola otp", None), ("", None)],
+)
 def test_parse(store, q, expected):
     assert make(store).parse(q) == expected
 
@@ -34,7 +36,7 @@ async def test_match_filters_and_formats(store):
     assert await r.match("firefox") == []
     ms = await r.match("otp pay")
     assert [m[0] for m in ms] == [f"code{runner.SEP}PayPal:bob"]
-    mid, text, icon, typ, rel, props = ms[0]
+    _mid, text, _icon, typ, _rel, props = ms[0]
     code, name = text.split("   ")
     assert len(code) == 7 and name == "PayPal:bob" and typ == runner.EXACT
     assert props["subtext"].startswith("valid until ") and "next: " in props["subtext"]
@@ -102,7 +104,9 @@ def test_config_show_codes(tmp_path):
 async def test_add_matches(store):
     r = make(store)
     ms = await r.match("otp add Mi Banco")
-    assert [m[0] for m in ms] == [f"add{runner.SEP}{src}{runner.SEP}Mi Banco" for src in ("screen", "clipboard", "camera")]
+    assert [m[0] for m in ms] == [
+        f"add{runner.SEP}{src}{runner.SEP}Mi Banco" for src in ("screen", "clipboard", "camera")
+    ]
     assert "“Mi Banco”" in ms[0][1]
     assert len(await r.match("otp add")) == 3
 

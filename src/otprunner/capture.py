@@ -64,9 +64,7 @@ def decode_qr(path: Path) -> list[str]:
 
 # --- captura ------------------------------------------------------------------
 async def _run(cmd: list[str], timeout: float = CAPTURE_TIMEOUT) -> int:
-    proc = await asyncio.create_subprocess_exec(
-        *cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
-    )
+    proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
     try:
         _out, err = await asyncio.wait_for(proc.communicate(), timeout)
     except asyncio.TimeoutError:
@@ -90,17 +88,27 @@ async def _portal(bus, out: Path) -> Path:
     fut: asyncio.Future = loop.create_future()
 
     def handler(msg: Message):
-        if (msg.message_type == MessageType.SIGNAL and msg.path == req_path
-                and msg.member == "Response" and not fut.done()):
+        if (
+            msg.message_type == MessageType.SIGNAL
+            and msg.path == req_path
+            and msg.member == "Response"
+            and not fut.done()
+        ):
             fut.set_result(msg.body)
 
     rule = f"type='signal',interface='org.freedesktop.portal.Request',member='Response',path='{req_path}'"
     await call(bus, "org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", "AddMatch", "s", [rule])
     bus.add_message_handler(handler)
     try:
-        await call(bus, "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop",
-                   "org.freedesktop.portal.Screenshot", "Screenshot", "sa{sv}",
-                   ["", {"handle_token": Variant("s", token), "interactive": Variant("b", True)}])
+        await call(
+            bus,
+            "org.freedesktop.portal.Desktop",
+            "/org/freedesktop/portal/desktop",
+            "org.freedesktop.portal.Screenshot",
+            "Screenshot",
+            "sa{sv}",
+            ["", {"handle_token": Variant("s", token), "interactive": Variant("b", True)}],
+        )
         code, results = await asyncio.wait_for(fut, CAPTURE_TIMEOUT)
     except asyncio.TimeoutError:
         raise CaptureError(_("{tool}: timed out").format(tool="portal")) from None
@@ -138,8 +146,11 @@ async def screenshot(bus, provider: str, out: Path) -> Path:
     }[provider]
     rc = await _run(cmd)
     if not out.exists() or out.stat().st_size == 0:
-        raise CaptureCancelled("cancelled") if rc in (0, 1) else CaptureError(
-            _("{tool}: exit code {rc}").format(tool=provider, rc=rc))
+        raise (
+            CaptureCancelled("cancelled")
+            if rc in (0, 1)
+            else CaptureError(_("{tool}: exit code {rc}").format(tool=provider, rc=rc))
+        )
     return out
 
 
@@ -180,7 +191,8 @@ async def _read_cmd(cmd: list[str]) -> bytes | None:
         return None
     try:
         proc = await asyncio.create_subprocess_exec(
-            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
+            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL
+        )
         data, _err = await asyncio.wait_for(proc.communicate(), 5)
         return data if proc.returncode == 0 and data else None
     except (OSError, asyncio.TimeoutError):
@@ -191,8 +203,9 @@ async def clipboard_text(bus) -> str:
     if bus is not None:
         try:
             if await name_available(bus, "org.kde.klipper"):
-                (txt,) = await call(bus, "org.kde.klipper", "/klipper", "org.kde.klipper.klipper",
-                                    "getClipboardContents")
+                (txt,) = await call(
+                    bus, "org.kde.klipper", "/klipper", "org.kde.klipper.klipper", "getClipboardContents"
+                )
                 if txt:
                     return txt
         except DBusCallError:

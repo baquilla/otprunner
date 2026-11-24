@@ -23,9 +23,10 @@ class NoSessionBus(OSError):
 async def session_bus() -> MessageBus:
     try:
         return await MessageBus(bus_type=BusType.SESSION).connect()
-    except Exception as e:  # noqa: BLE001 — dbus-fast lanza varios tipos según la causa
-        raise NoSessionBus(_("cannot connect to the DBus session bus (run it inside your desktop session): {error}")
-                           .format(error=e)) from None
+    except Exception as e:
+        raise NoSessionBus(
+            _("cannot connect to the DBus session bus (run it inside your desktop session): {error}").format(error=e)
+        ) from None
 
 
 async def call(bus: MessageBus, dest: str, path: str, iface: str, member: str, sig: str = "", body=None):

@@ -27,6 +27,7 @@ def test_write_sheet_has_all_codes(tmp_path):
     assert oct(path.stat().st_mode & 0o777) == "0o600"
     import zxingcpp
     from PIL import Image
+
     found = sorted(r.text for r in zxingcpp.read_barcodes(Image.open(path)))
     assert found == sorted(uris)
 
@@ -44,9 +45,9 @@ def test_image_area_follows_pointer_or_smallest_monitor():
     mons = dialogs.monitors(LISTING)
     assert mons[1] == (1920, 515, 319, 2160)
     assert dialogs.pointer("X=500\nY=2300\nSCREEN=0\nWINDOW=1\n") == (500, 2300)
-    assert dialogs.image_area(mons=mons, ptr=(500, 2300)) == (1280, 355)    # el monitor bajo
-    assert dialogs.image_area(mons=mons, ptr=(100, 100)) == (1280, 760)     # el grande
-    assert dialogs.image_area(mons=mons, ptr=(-5000, 0)) == (1280, 355)     # desconocido: el menor
+    assert dialogs.image_area(mons=mons, ptr=(500, 2300)) == (1280, 355)  # el monitor bajo
+    assert dialogs.image_area(mons=mons, ptr=(100, 100)) == (1280, 760)  # el grande
+    assert dialogs.image_area(mons=mons, ptr=(-5000, 0)) == (1280, 355)  # desconocido: el menor
     assert dialogs.image_area(mons=[]) == (1280, 760)
 
 
@@ -58,4 +59,5 @@ def test_sheet_fits_a_short_monitor(tmp_path):
     path = exporting.write_sheet(uris, ["1/2", "2/2"], tmp_path, max_width=1280, max_height=355)
     assert Image.open(path).height <= 355
     import zxingcpp
+
     assert sorted(r.text for r in zxingcpp.read_barcodes(Image.open(path))) == sorted(uris)

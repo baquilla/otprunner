@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import base64
-import re
 import hashlib
 import hmac
+import re
 import struct
 import time
 from dataclasses import dataclass, field, replace
 from urllib.parse import parse_qs, quote, unquote, urlencode, urlsplit
+
 from .i18n import _
 
 ALGORITHMS = {"SHA1": hashlib.sha1, "SHA256": hashlib.sha256, "SHA512": hashlib.sha512, "MD5": hashlib.md5}

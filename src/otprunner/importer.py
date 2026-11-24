@@ -6,8 +6,8 @@ import re
 from dataclasses import dataclass, field
 
 from . import migration
-from .otpauth import Account, OtpError
 from .i18n import _
+from .otpauth import Account, OtpError
 from .store import Store
 
 _URI_RE = re.compile(r"otpauth(?:-migration)?://[^\s\"'<>]+", re.IGNORECASE)

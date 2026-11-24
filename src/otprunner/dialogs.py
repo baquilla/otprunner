@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
+
 from .i18n import _
 
 
@@ -23,8 +24,7 @@ def tool() -> str | None:
 
 
 async def _run(cmd: list[str]) -> tuple[int, str]:
-    proc = await asyncio.create_subprocess_exec(
-        *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
+    proc = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
     out, _err = await proc.communicate()
     return proc.returncode, out.decode(errors="replace").rstrip("\n")
 
@@ -74,11 +74,26 @@ async def confirm(title: str, text: str, ok_label: str | None = None) -> bool:
     ok_label = ok_label or _("Continue")
     t = tool()
     if t == "kdialog":
-        rc, _out = await _run(["kdialog", "--title", title, "--warningcontinuecancel", text,
-                            "--continue-label", ok_label])
+        rc, _out = await _run(
+            ["kdialog", "--title", title, "--warningcontinuecancel", text, "--continue-label", ok_label]
+        )
     elif t == "zenity":
-        rc, _out = await _run(["zenity", "--question", "--title", title, "--text", text,
-                            "--ok-label", ok_label, "--cancel-label", _("Cancel"), "--icon-name", "dialog-warning"])
+        rc, _out = await _run(
+            [
+                "zenity",
+                "--question",
+                "--title",
+                title,
+                "--text",
+                text,
+                "--ok-label",
+                ok_label,
+                "--cancel-label",
+                _("Cancel"),
+                "--icon-name",
+                "dialog-warning",
+            ]
+        )
     else:
         raise NoDialogTool()
     return rc == 0
@@ -104,7 +119,15 @@ async def show_image(path: Path, title: str) -> None:
         # zenity no muestra imágenes: abrimos el visor del sistema y esperamos a que el
         # usuario confirme para poder borrar el fichero.
         await _run(["xdg-open", str(path)])
-        await _run(["zenity", "--info", "--title", title,
-                    "--text", _("Press OK when you have scanned the QR code, and close the viewer.")])
+        await _run(
+            [
+                "zenity",
+                "--info",
+                "--title",
+                title,
+                "--text",
+                _("Press OK when you have scanned the QR code, and close the viewer."),
+            ]
+        )
     else:
         raise NoDialogTool()

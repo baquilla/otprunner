@@ -21,14 +21,17 @@ def _env(monkeypatch, **env):
         monkeypatch.setenv(k, v)
 
 
-@pytest.mark.parametrize("env,expected", [
-    ({"LANGUAGE": "en_US:es", "LANG": "en_US.UTF-8"}, "Remove"),   # inglés preferido, aunque haya «es» después
-    ({"LANGUAGE": "es_ES:en", "LANG": "en_US.UTF-8"}, "Borrar"),
-    ({"LANG": "es_ES.UTF-8"}, "Borrar"),
-    ({"LANGUAGE": "fr:es"}, "Borrar"),                            # sin catálogo fr: siguiente de la lista
-    ({"LANG": "C"}, "Remove"),
-    ({}, "Remove"),
-])
+@pytest.mark.parametrize(
+    "env,expected",
+    [
+        ({"LANGUAGE": "en_US:es", "LANG": "en_US.UTF-8"}, "Remove"),  # inglés preferido, aunque haya «es» después
+        ({"LANGUAGE": "es_ES:en", "LANG": "en_US.UTF-8"}, "Borrar"),
+        ({"LANG": "es_ES.UTF-8"}, "Borrar"),
+        ({"LANGUAGE": "fr:es"}, "Borrar"),  # sin catálogo fr: siguiente de la lista
+        ({"LANG": "C"}, "Remove"),
+        ({}, "Remove"),
+    ],
+)
 def test_language_selection(monkeypatch, env, expected):
     _env(monkeypatch, **env)
     i18n.setup()
@@ -55,10 +58,14 @@ def _source_messages() -> set:
 def test_catalog_complete_and_compiled(lang):
     from babel.messages.pofile import read_po
 
-    po = read_po(open(SRC / "locale" / lang / "LC_MESSAGES" / "otprunner.po", "rb"))
+    with open(SRC / "locale" / lang / "LC_MESSAGES" / "otprunner.po", "rb") as f:
+        po = read_po(f)
     by_id = {m.id: m for m in po if m.id}
-    missing = [m for m in _source_messages() if m not in by_id or not by_id[m].string
-               or (isinstance(by_id[m].string, tuple) and not all(by_id[m].string))]
+    missing = [
+        m
+        for m in _source_messages()
+        if m not in by_id or not by_id[m].string or (isinstance(by_id[m].string, tuple) and not all(by_id[m].string))
+    ]
     assert not missing, f"sin traducir en {lang} (scripts/i18n.sh update): {missing}"
     mo = gettext.translation(i18n.DOMAIN, i18n.localedir(), languages=[lang])
     ph = re.compile(r"\{\w+\}")

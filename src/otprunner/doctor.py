@@ -8,7 +8,7 @@ import shutil
 import sys
 
 from . import APP_NAME, __version__, camera, config, i18n
-from .dbusutil import name_available, session_bus
+from .dbusutil import NoSessionBus, name_available, session_bus
 from .i18n import _
 from .store import BACKENDS, StoreUnavailable, kwallet, secretservice
 
@@ -39,7 +39,11 @@ async def run() -> int:
         print(f"{k:14} {v}")
     print()
 
-    bus = await session_bus()
+    try:
+        bus = await session_bus()
+    except NoSessionBus as e:
+        print(f"{NO} {e}")
+        return 1
     rc = 0
     try:
         # --- keystore --------------------------------------------------------

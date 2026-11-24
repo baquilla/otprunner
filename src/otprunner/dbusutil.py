@@ -5,6 +5,8 @@ from __future__ import annotations
 from dbus_fast import BusType, Message, MessageType
 from dbus_fast.aio import MessageBus
 
+from .i18n import _
+
 DBUS = ("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus")
 
 
@@ -14,8 +16,16 @@ class DBusCallError(RuntimeError):
         self.name = name
 
 
+class NoSessionBus(OSError):
+    """No hay bus de sesión (fuera de una sesión gráfica, en un contenedor…)."""
+
+
 async def session_bus() -> MessageBus:
-    return await MessageBus(bus_type=BusType.SESSION).connect()
+    try:
+        return await MessageBus(bus_type=BusType.SESSION).connect()
+    except Exception as e:  # noqa: BLE001 — dbus-fast lanza varios tipos según la causa
+        raise NoSessionBus(_("cannot connect to the DBus session bus (run it inside your desktop session): {error}")
+                           .format(error=e)) from None
 
 
 async def call(bus: MessageBus, dest: str, path: str, iface: str, member: str, sig: str = "", body=None):

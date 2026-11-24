@@ -69,3 +69,13 @@ def test_parse_text_mixed():
     text = f"basura {A.to_uri()}\n{migration.encode([B])[0]} otpauth://totp/x?secret=1 fin"
     p = importer.parse_text(text)
     assert p.accounts == [A, B] and len(p.batches) == 1 and len(p.errors) == 1
+
+
+async def test_no_session_bus_is_a_clear_error(monkeypatch):
+    from otprunner import dbusutil
+    from otprunner.store import open_store
+
+    monkeypatch.delenv("DBUS_SESSION_BUS_ADDRESS", raising=False)
+    monkeypatch.delenv("DISPLAY", raising=False)
+    with pytest.raises(dbusutil.NoSessionBus, match="session bus"):
+        await open_store()

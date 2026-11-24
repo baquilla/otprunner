@@ -4,13 +4,26 @@ build-backend = "hatchling.build"
 
 [project]
 name = "otprunner"
-version = "0.2.0.dev0"
+dynamic = ["version"]
 description = "TOTP codes in KRunner, with secrets in the system keystore"
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Juan Javier Baca" }]
+keywords = ["totp", "2fa", "otp", "krunner", "kde", "plasma", "kwallet", "secret-service", "authenticator"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: X11 Applications :: KDE",
+    "Intended Audience :: End Users/Desktop",
+    "Natural Language :: English",
+    "Natural Language :: Spanish",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Security",
+    "Topic :: Utilities",
+]
 dependencies = [
     "dbus-fast>=2.0",       # DBus asyncio, Python puro: runner, Secret Service, KWallet, portales
     "tomli>=2; python_version<'3.11'",
@@ -19,11 +32,23 @@ dependencies = [
     "pillow>=10",
 ]
 
+[project.urls]
+Homepage = "https://github.com/baquilla/otprunner"
+Documentation = "https://github.com/baquilla/otprunner/blob/main/docs/usage.md"
+Issues = "https://github.com/baquilla/otprunner/issues"
+Changelog = "https://github.com/baquilla/otprunner/blob/main/CHANGELOG.md"
+
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-asyncio>=0.23", "babel>=2.14"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "babel>=2.14", "build>=1", "twine>=5"]
 
 [project.scripts]
 otprunner = "otprunner.cli:main"
+
+[tool.hatch.version]
+path = "src/otprunner/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/docs/img", "/.github"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/otprunner"]

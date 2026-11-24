@@ -34,6 +34,8 @@ dependencies = [
     "tomli>=2; python_version<'3.11'",
     "segno>=1.6",           # generación de QR (export)
     "zxing-cpp>=2.2",       # lectura de QR desde imagen
+    # 3.2.0 has no wheels for Python 3.10 and its sdist does not build.
+    "zxing-cpp<3.2; python_version<'3.11'",
     "pillow>=10",
 ]
 

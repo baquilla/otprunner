@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Python 3.10: keep zxing-cpp below 3.2, which has no wheels for it and fails to build.
 - KDE Store showcase entry (`packaging/kde-store/`, built with `scripts/kde-store.sh`): it
   installs nothing and explains how to install OTPRunner with pipx.
 

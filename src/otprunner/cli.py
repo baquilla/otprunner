@@ -141,7 +141,7 @@ async def _cmd(args, cfg) -> int:
             if not names:
                 print(_("no accounts to export"), file=sys.stderr)
                 return 1
-            if args.format == "otpauth":
+            if args.format == "otpauth" or (args.format == "auto" and len(names) == 1):
                 for n in names:
                     if args.qr:
                         print(n)
@@ -206,7 +206,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     s = sub.add_parser("export", help=_("export accounts"))
     s.add_argument("filter", nargs="?")
-    s.add_argument("--format", choices=("migration", "otpauth"), default="migration")
+    s.add_argument("--format", choices=("auto", "migration", "otpauth"), default="auto",
+                   help=_("auto: otpauth for a single account, migration for several"))
     s.add_argument("--batch", type=int, default=migration.DEFAULT_BATCH, help=_("accounts per migration URI"))
     s.add_argument("--qr", action="store_true", help=_("show as QR codes in the terminal"))
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OTPRunner VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-24 12:52+0000\n"
+"POT-Creation-Date: 2026-11-24 12:59+0000\n"
 "PO-Revision-Date: 2026-11-23 00:17+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: es\n"
@@ -323,6 +323,9 @@ msgstr "copiarlo también al portapapeles"
 #, python-brace-format
 msgid "an account named “{name}” already exists"
 msgstr "ya existe una cuenta llamada «{name}»"
+
+msgid "auto: otpauth for a single account, migration for several"
+msgstr "auto: otpauth para una sola cuenta, migration para varias"
 
 msgid "cancelled"
 msgstr "cancelado"
@@ -662,6 +665,10 @@ msgstr "{app}: exportar"
 #, python-brace-format
 msgid "{app}: show the QR code to the camera (Esc or close to cancel)"
 msgstr "{app}: enseña el QR a la cámara (Esc o cerrar para cancelar)"
+
+#, python-brace-format
+msgid "{app}: {name} — scan it with your authenticator app"
+msgstr "{app}: {name} — escanéalo con tu app de autenticación"
 
 #, python-brace-format
 msgid "{current} (available: {langs})"

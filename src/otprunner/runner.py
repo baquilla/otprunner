@@ -254,7 +254,11 @@ class Runner:
         for i, uri in enumerate(exp.uris, 1):
             path = exporting.write_png(uri, d)
             try:
-                title = _("{app}: QR {i} of {n} — scan it with Google Authenticator").format(app=APP_NAME, i=i, n=n)
+                if exp.uris[0].startswith("otpauth://"):
+                    title = _("{app}: {name} — scan it with your authenticator app").format(
+                        app=APP_NAME, name=exp.exported[0])
+                else:
+                    title = _("{app}: QR {i} of {n} — scan it with Google Authenticator").format(app=APP_NAME, i=i, n=n)
                 await dialogs.show_image(path, title)
             finally:
                 path.unlink(missing_ok=True)

@@ -32,7 +32,7 @@ guardados en el keystore del sistema y una CLI equivalente.
 | `otp add [nombre]` | Añadir desde captura de pantalla · portapapeles · cámara |
 | `otp rename [filtro]` | Renombrar (pide el nombre nuevo) |
 | `otp remove [filtro]` | Borrar (pide confirmación); `rm` también vale |
-| `otp export [filtro]` | Mostrar QR de migración para Google Authenticator (pide confirmación) |
+| `otp export [filtro]` | Mostrar QR para pasar cuentas al móvil: una sola cuenta como su `otpauth://`, varias como QR de migración de Google Authenticator (pide confirmación) |
 
 KRunner muestra como mucho 15 resultados, repartidos entre los runners que respondan (con
 dos, unos 7 cada uno): si hay más coincidencias, aparece «+N más» y basta con escribir más
@@ -45,7 +45,7 @@ otprunner list [filtro]
 otprunner code <nombre> [--copy]
 otprunner add [nombre] --screen | --camera | --clipboard | --uri URI
 otprunner import <fichero|URI>
-otprunner export [filtro] [--format migration|otpauth] [--qr]
+otprunner export [filtro] [--format auto|migration|otpauth] [--qr]
 otprunner remove <nombre>        (alias: rm)
 otprunner rename <viejo> <nuevo>
 otprunner install | uninstall | doctor

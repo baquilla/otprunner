@@ -33,7 +33,7 @@ system keystore and an equivalent command line.
 | `otp add [name]` | Add from a screen capture · the clipboard · the camera |
 | `otp rename [filter]` | Rename (asks for the new name) |
 | `otp remove [filter]` | Remove (asks for confirmation); `rm` works too |
-| `otp export [filter]` | Show migration QR codes for Google Authenticator (asks for confirmation) |
+| `otp export [filter]` | Show QR codes to move accounts to the phone: a single account as its `otpauth://`, several as Google Authenticator migration codes (asks for confirmation) |
 
 KRunner shows at most 15 results, shared among the runners that answer (with two of them,
 about 7 each): when there are more matches, a “+N more” line appears; just type a few more
@@ -46,7 +46,7 @@ otprunner list [filter]
 otprunner code <name> [--copy]
 otprunner add [name] --screen | --camera | --clipboard | --uri URI
 otprunner import <file|URI>
-otprunner export [filter] [--format migration|otpauth] [--qr]
+otprunner export [filter] [--format auto|migration|otpauth] [--qr]
 otprunner remove <name>          (alias: rm)
 otprunner rename <old> <new>
 otprunner install | uninstall | doctor

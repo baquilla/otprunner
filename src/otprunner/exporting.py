@@ -1,4 +1,5 @@
-"""Export a QR de migración (Google Authenticator) para pasar cuentas al móvil."""
+"""Export a QR para pasar cuentas al móvil: una cuenta, su ``otpauth://`` (lo lee cualquier
+app); varias, QR de migración de Google Authenticator."""
 
 from __future__ import annotations
 
@@ -17,9 +18,16 @@ class Export:
     skipped: list[tuple[str, str]] = field(default_factory=list)  # (nombre, motivo)
 
 
-def build(accounts: dict[str, Account], batch_size: int = migration.DEFAULT_BATCH) -> Export:
-    """Codifica las cuentas compatibles; las demás se listan en ``skipped``."""
+def build(accounts: dict[str, Account], batch_size: int = migration.DEFAULT_BATCH,
+          single_otpauth: bool = True) -> Export:
+    """Codifica las cuentas compatibles; las demás se listan en ``skipped``.
+
+    Con una sola cuenta (y ``single_otpauth``) se exporta su URI ``otpauth://`` tal cual.
+    """
     out = Export()
+    if single_otpauth and len(accounts) == 1:
+        ((name, acc),) = accounts.items()
+        return Export(uris=[acc.to_uri()], exported=[name])
     ok: list[Account] = []
     for name, acc in accounts.items():
         try:

@@ -109,6 +109,7 @@ The first language in the list that is English or has a catalog wins, so
 | Project | Difference |
 |---|---|
 | yubikey-oath-krunner | Codes from a YubiKey |
+| [ente-auth-krunner](https://github.com/Bricks666/ente-auth-krunner) | Reads the codes of the Ente Auth desktop app (Plasma 6, TOTP only) |
 | [krunner-pass](https://github.com/akermu/krunner-pass) | Needs `pass` and GPG (TOTP through pass-otp) |
 | KeePassXC's KRunner integration | Needs KeePassXC; TOTP is a secondary action |
 | OTPClient, Keysmith, GNOME Authenticator | Desktop apps with their own window |

@@ -77,10 +77,11 @@ The interface is available in English and Spanish; new translations are welcome.
 Ideas and planned work; discussion and help welcome in the
 [issues](https://github.com/baquilla/otprunner/issues).
 
-- [ ] **KDE Store**: a showcase entry in *KRunner Plugins* (Plasma 5 first, then Plasma 6),
-  so OTPRunner can be found from KRunner's settings (*Get New Plugins*). The entry installs
+- [x] **KDE Store** for Plasma 5: a [showcase entry](https://www.opendesktop.org/p/2382645/),
+  so OTPRunner can be found from KRunner's settings (*Get New Plugins*). It installs
   nothing: its *Install* button opens a terminal with the pipx instructions
   ([packaging/kde-store](https://github.com/baquilla/otprunner/tree/main/packaging/kde-store)).
+- [ ] **KDE Store** for Plasma 6, once it is tested there.
 - [ ] **YubiKey as an additional store.** Keep the keystore as the default, and use any
   YubiKey that is plugged in alongside it:
   - when adding an account, choose where it goes: keystore (default) or a YubiKey;

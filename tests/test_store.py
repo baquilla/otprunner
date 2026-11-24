@@ -36,6 +36,25 @@ async def test_import_dedupe_and_suffix():
     assert res.renamed == [("GitHub:alice", "GitHub:alice (2)")]
 
 
+async def test_import_same_secret_updates_uri_keeps_name():
+    s = MemoryStore()
+    old = "otpauth://totp/GitHub:alice?secret=MFQWCYLBMFQWCYLB&issuer=GitHub"
+    await importer.import_accounts(s, [Account.from_uri(old)], name="mi github")
+    new = "otpauth://totp/Otro:nombre?secret=MFQWCYLBMFQWCYLB&digits=6&image=x"
+    res = await importer.import_accounts(s, [Account.from_uri(new)], name="ignorado")
+    assert res.updated == ["mi github"] and not res.added
+    assert s.data == {"mi github": new}  # URI exacta, nombre intacto
+    res = await importer.import_accounts(s, [Account.from_uri(new)])
+    assert res.skipped == ["mi github"] and not res.updated
+
+
+async def test_import_stores_uri_verbatim():
+    s = MemoryStore()
+    uri = "otpauth://totp/alice?secret=MFQWCYLBMFQWCYLB&issuer=GitHub&foo=bar"
+    assert (await importer.import_accounts(s, [Account.from_uri(uri)])).added == ["GitHub:alice"]
+    assert s.data["GitHub:alice"] == uri
+
+
 async def test_import_name_only_for_single():
     s = MemoryStore()
     assert (await importer.import_accounts(s, [A], name="mio")).added == ["mio"]

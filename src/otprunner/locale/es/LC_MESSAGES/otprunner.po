@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OTPRunner VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 00:26+0000\n"
+"POT-Creation-Date: 2026-11-24 12:52+0000\n"
 "PO-Revision-Date: 2026-11-23 00:17+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: es\n"
@@ -241,6 +241,10 @@ msgstr "Renombrada: {old} → {new}"
 msgid "Requires {hint}"
 msgstr "Requiere {hint}"
 
+#, python-brace-format
+msgid "Same secret, code updated: {names}"
+msgstr "Mismo secreto, código actualizado: {names}"
+
 msgid "Screen capture"
 msgstr "Captura de pantalla"
 
@@ -275,8 +279,12 @@ msgstr "Algunas cuentas no se exportaron"
 msgid "TOTP codes from the system keystore"
 msgstr "Códigos TOTP del keystore del sistema"
 
-msgid "The URI with the secret is still in the Klipper history: delete it from its menu."
-msgstr "La URI con el secreto sigue en el historial de Klipper: bórrala desde su menú."
+msgid ""
+"The URI with the secret is still in the Klipper history: delete it from "
+"its menu."
+msgstr ""
+"La URI con el secreto sigue en el historial de Klipper: bórrala desde su "
+"menú."
 
 #, python-brace-format
 msgid "Type to search your {n} account"
@@ -289,6 +297,12 @@ msgstr "URI o imagen QR del portapapeles"
 
 msgid "Uninstalled. The secrets are still in the keystore."
 msgstr "Desinstalado. Los secretos siguen en el keystore."
+
+#, python-brace-format
+msgid "Updated {n} account"
+msgid_plural "Updated {n} accounts"
+msgstr[0] "{n} cuenta actualizada"
+msgstr[1] "{n} cuentas actualizadas"
 
 msgid "XDG Screenshot portal"
 msgstr "portal XDG Screenshot"
@@ -471,7 +485,9 @@ msgid "no screen capture tool: install spectacle or xdg-desktop-portal"
 msgstr "no hay herramienta de captura: instala spectacle o xdg-desktop-portal"
 
 msgid "no usable keystore: install/enable KWallet, GNOME Keyring or KeePassXC"
-msgstr "ningún keystore utilizable: instala o activa KWallet, GNOME Keyring o KeePassXC"
+msgstr ""
+"ningún keystore utilizable: instala o activa KWallet, GNOME Keyring o "
+"KeePassXC"
 
 msgid "not an otpauth-migration:// URI"
 msgstr "no es una URI otpauth-migration://"
@@ -595,6 +611,10 @@ msgid "unsupported type: {type}"
 msgstr "tipo no soportado: {type}"
 
 #, python-brace-format
+msgid "updated (same secret, name kept): {name}"
+msgstr "actualizada (mismo secreto, se mantiene el nombre): {name}"
+
+#, python-brace-format
 msgid "valid until {time}  ·  next: {code}"
 msgstr "vale hasta las {time}  ·  después: {code}"
 
@@ -691,11 +711,13 @@ msgstr[1] "{n} secretos"
 msgid ""
 "{secrets} will be shown on screen in {codes}.\n"
 "\n"
-"Anyone who sees or photographs the screen can copy those accounts. Continue?"
+"Anyone who sees or photographs the screen can copy those accounts. "
+"Continue?"
 msgstr ""
 "Se van a mostrar en pantalla {secrets} en {codes}.\n"
 "\n"
-"Cualquiera que vea o fotografíe la pantalla podrá copiar esas cuentas. ¿Continuar?"
+"Cualquiera que vea o fotografíe la pantalla podrá copiar esas cuentas. "
+"¿Continuar?"
 
 #, python-brace-format
 msgid "{service} is not on the session bus"

@@ -22,7 +22,7 @@ class Outcome:
 
     @property
     def ok(self) -> bool:
-        return bool(self.result.added or self.result.skipped)
+        return bool(self.result.added or self.result.updated or self.result.skipped)
 
     def summary(self) -> tuple[str, str]:
         """(título, cuerpo) para notificación o consola."""
@@ -35,6 +35,8 @@ class Outcome:
                 title = ngettext("Added {n} account", "Added {n} accounts", len(r.added)).format(n=len(r.added))
             if len(r.added) > 1:
                 lines.append(", ".join(r.added))
+        elif r.updated:
+            title = ngettext("Updated {n} account", "Updated {n} accounts", len(r.updated)).format(n=len(r.updated))
         elif r.skipped:
             title = _("Nothing new to add")
         elif p.errors:
@@ -43,6 +45,8 @@ class Outcome:
             title = _("No otpauth code found")
         for wanted, final in r.renamed:
             lines.append(_("“{wanted}” already existed: saved as “{final}”").format(wanted=wanted, final=final))
+        if r.updated:
+            lines.append(_("Same secret, code updated: {names}").format(names=", ".join(r.updated)))
         if r.skipped:
             lines.append(_("Already present: {names}").format(names=", ".join(r.skipped)))
         for b in p.batches:

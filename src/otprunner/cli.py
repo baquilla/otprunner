@@ -48,11 +48,13 @@ def _report(res: importer.ImportResult, errors: list[str]) -> int:
         print(_("added: {name}").format(name=n))
     for wanted, final in res.renamed:
         print("  " + _("(“{wanted}” already existed, saved as “{final}”)").format(wanted=wanted, final=final))
+    for n in res.updated:
+        print(_("updated (same secret, name kept): {name}").format(name=n))
     for n in res.skipped:
         print(_("skipped (already present with the same secret): {name}").format(name=n))
     for e in errors:
         print(_("error: {message}").format(message=e), file=sys.stderr)
-    return 1 if errors and not res.added else 0
+    return 1 if errors and not (res.added or res.updated) else 0
 
 
 async def _cmd(args, cfg) -> int:

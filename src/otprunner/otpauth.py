@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import base64
+import re
 import hashlib
 import hmac
 import struct
 import time
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from urllib.parse import parse_qs, quote, unquote, urlencode, urlsplit
 from .i18n import _
 
@@ -20,7 +21,7 @@ class OtpError(ValueError):
 
 def clean_text(s: str) -> str:
     """Quita caracteres de control y espacios sobrantes (hay exportadores que dejan «\\n»)."""
-    return " ".join("".join(c if c.isprintable() else " " for c in s).split())
+    return " ".join("".join(c for c in s if c.isprintable() or c == " ").split())
 
 
 def b32decode(secret: str) -> bytes:
@@ -45,6 +46,9 @@ class Account:
     digits: int = 6
     period: int = 30
     counter: int = 0
+    # URI original tal como llegó (vacía si la cuenta viene de otpauth-migration). Es lo que
+    # se guarda: nunca se reescribe salvo el contador HOTP.
+    uri: str = field(default="", compare=False, repr=False)
 
     def __post_init__(self) -> None:
         if not self.secret:
@@ -61,7 +65,11 @@ class Account:
     # --- identidad -------------------------------------------------------
     @property
     def label(self) -> str:
-        """Nombre visible por defecto: ``issuer:name`` sin duplicar el issuer."""
+        """Nombre identificador por defecto.
+
+        ``name`` es la etiqueta de la URI tal cual (nunca se parte por «:»). Si hay
+        ``issuer`` y la etiqueta no empieza ya por «issuer:», se antepone como prefijo.
+        """
         if self.issuer and self.name and not self.name.startswith(self.issuer + ":"):
             return f"{self.issuer}:{self.name}"
         return self.name or self.issuer
@@ -80,6 +88,9 @@ class Account:
 
     # --- URI ---------------------------------------------------------------
     def to_uri(self) -> str:
+        """La URI original si la hay; si no, una generada a partir de los campos."""
+        if self.uri:
+            return self.uri
         params = {"secret": b32encode(self.secret)}
         if self.issuer:
             params["issuer"] = self.issuer
@@ -91,7 +102,7 @@ class Account:
             params["period"] = str(self.period)
         if self.type == "hotp":
             params["counter"] = str(self.counter)
-        return f"otpauth://{self.type}/{quote(self.label, safe=':@')}?{urlencode(params, quote_via=quote)}"
+        return f"otpauth://{self.type}/{quote(self.name, safe=':@')}?{urlencode(params, quote_via=quote)}"
 
     @classmethod
     def from_uri(cls, uri: str) -> Account:
@@ -102,15 +113,9 @@ class Account:
         q = {k.lower(): v[-1] for k, v in parse_qs(parts.query, keep_blank_values=True).items()}
         if "secret" not in q:
             raise OtpError(_("missing secret parameter"))
-        label = unquote(parts.path.lstrip("/"))
+        # Etiqueta e issuer tal cual llegan; solo se quitan caracteres de control.
+        name = clean_text(unquote(parts.path.lstrip("/")))
         issuer = clean_text(q.get("issuer", ""))
-        name = clean_text(label)
-        if ":" in label:
-            prefix, rest = label.split(":", 1)
-            issuer = issuer or clean_text(prefix)
-            name = clean_text(rest)
-        if issuer and name.startswith(issuer + ":"):  # «PayPal:PayPal:yo» → name «yo»
-            name = name[len(issuer) + 1 :].strip()
         try:
             return cls(
                 secret=b32decode(q["secret"]),
@@ -121,6 +126,7 @@ class Account:
                 digits=int(q.get("digits", 6)),
                 period=int(q.get("period", 30)),
                 counter=int(q.get("counter", 0)),
+                uri=uri.strip(),
             )
         except ValueError as e:
             if isinstance(e, OtpError):
@@ -128,7 +134,13 @@ class Account:
             raise OtpError(_("invalid numeric parameter: {error}").format(error=e)) from None
 
     def with_counter(self, counter: int) -> Account:
-        return replace(self, counter=counter)
+        """Misma cuenta con otro contador HOTP; en la URI original solo cambia ``counter``."""
+        uri = self.uri
+        if uri:
+            uri, n = re.subn(r"([?&]counter=)[^&#]*", lambda m: f"{m.group(1)}{counter}", uri, count=1, flags=re.I)
+            if not n:
+                uri += f"{'&' if '?' in uri else '?'}counter={counter}"
+        return replace(self, counter=counter, uri=uri)
 
 
 def hotp(secret: bytes, counter: int, digits: int = 6, algorithm: str = "SHA1") -> str:

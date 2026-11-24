@@ -137,8 +137,6 @@ def _decode_params(b: bytes) -> Account:
         return v.decode("utf-8") if isinstance(v, bytes) else ""
 
     name, issuer = clean_text(text(2)), clean_text(text(3))
-    if issuer and name.startswith(issuer + ":"):
-        name = name[len(issuer) + 1 :]
     return Account(
         secret=o.get(1, b""),  # type: ignore[arg-type]
         name=name,

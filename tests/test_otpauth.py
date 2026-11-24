@@ -26,7 +26,7 @@ def test_totp_rfc6238(alg, secret, t, code):
 
 def test_uri_roundtrip_defaults():
     a = Account.from_uri("otpauth://totp/ACME%20Co:john@example.com?secret=JBSWY3DPEHPK3PXP&issuer=ACME%20Co")
-    assert (a.issuer, a.name, a.digits, a.period, a.algorithm) == ("ACME Co", "john@example.com", 6, 30, "SHA1")
+    assert (a.issuer, a.name, a.digits, a.period, a.algorithm) == ("ACME Co", "ACME Co:john@example.com", 6, 30, "SHA1")
     assert a.label == "ACME Co:john@example.com"
     assert Account.from_uri(a.to_uri()) == a
 
@@ -66,10 +66,32 @@ def test_invalid(uri):
 
 def test_control_chars_cleaned():
     a = Account.from_uri("otpauth://totp/Github%0A:github.com%2Fyo?secret=JBSWY3DP&issuer=Github%0A")
-    assert (a.issuer, a.name, a.label) == ("Github", "github.com/yo", "Github:github.com/yo")
+    assert (a.issuer, a.name, a.label) == ("Github", "Github:github.com/yo", "Github:github.com/yo")
 
 
-def test_repeated_issuer_prefix_roundtrip():
-    a = Account.from_uri("otpauth://totp/PayPal%0A:PayPal:yo@x.com?secret=JBSWY3DP&issuer=PayPal%0A")
-    assert (a.issuer, a.name, a.label) == ("PayPal", "yo@x.com", "PayPal:yo@x.com")
-    assert Account.from_uri(a.to_uri()) == a
+@pytest.mark.parametrize(
+    "path,issuer,label",
+    [
+        ("alice", "", "alice"),                              # sin issuer: la etiqueta tal cual
+        ("GitHub:alice", "", "GitHub:alice"),                # nunca se parte por «:» ni se deduce issuer
+        ("alice", "GitHub", "GitHub:alice"),                 # el issuer se antepone
+        ("GitHub:alice", "GitHub", "GitHub:alice"),          # …salvo que ya esté como prefijo
+        ("PayPal:PayPal:yo", "PayPal", "PayPal:PayPal:yo"),  # nunca se recorta
+        ("x:y", "GitHub", "GitHub:x:y"),
+    ],
+)
+def test_label_rules(path, issuer, label):
+    uri = f"otpauth://totp/{path}?secret=JBSWY3DP" + (f"&issuer={issuer}" if issuer else "")
+    assert Account.from_uri(uri).label == label
+
+
+def test_original_uri_kept_verbatim():
+    uri = "otpauth://totp/GitHub:alice?secret=jbswy3dp&foo=bar&period=30"
+    a = Account.from_uri("  " + uri + "\n")
+    assert a.to_uri() == uri and "issuer" not in a.to_uri()
+
+
+def test_with_counter_only_touches_counter():
+    uri = "otpauth://hotp/x?secret=JBSWY3DP&counter=3&issuer=Y&foo=1"
+    assert Account.from_uri(uri).with_counter(4).to_uri() == uri.replace("counter=3", "counter=4")
+    assert Account.from_uri("otpauth://hotp/x?secret=JBSWY3DP").with_counter(1).to_uri().endswith("&counter=1")

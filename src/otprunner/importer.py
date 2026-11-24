@@ -39,7 +39,8 @@ def parse_text(text: str) -> Parsed:
 @dataclass
 class ImportResult:
     added: list[str] = field(default_factory=list)
-    skipped: list[str] = field(default_factory=list)  # mismo secreto ya presente
+    skipped: list[str] = field(default_factory=list)  # mismo secreto y misma URI ya presentes
+    updated: list[str] = field(default_factory=list)  # mismo secreto: URI sustituida, nombre intacto
     renamed: list[tuple[str, str]] = field(default_factory=list)  # (deseado, asignado)
 
 
@@ -55,25 +56,32 @@ def _unique(name: str, taken: set[str]) -> str:
 async def import_accounts(store: Store, accounts: list[Account], name: str | None = None) -> ImportResult:
     """Da de alta ``accounts``.
 
-    - Si ya existe una cuenta con el mismo secreto (y tipo), se omite.
+    - Si ya existe una cuenta con el mismo secreto, conserva su nombre y se sustituye su URI
+      por la que llega (o se omite si es idéntica).
     - Si el nombre está ocupado por otra cuenta, se añade un sufijo « (n)».
     - ``name`` solo se usa si hay una única cuenta.
     """
     if name and len(accounts) != 1:
         name = None
     existing = await store.all()
-    known = {(a.secret, a.type) for a in existing.values()}
+    by_secret = {a.secret: (n, a) for n, a in existing.items()}
     taken = set(existing)
     res = ImportResult()
     for acc in accounts:
-        wanted = (name or acc.label or _("unnamed")).strip()
-        if (acc.secret, acc.type) in known:
-            res.skipped.append(wanted)
+        if acc.secret in by_secret:
+            old_name, old = by_secret[acc.secret]
+            if acc.to_uri() == old.to_uri():
+                res.skipped.append(old_name)
+            else:
+                await store.put(old_name, acc, replace=True)
+                by_secret[acc.secret] = (old_name, acc)
+                res.updated.append(old_name)
             continue
+        wanted = (name or acc.label or _("unnamed")).strip()
         final = _unique(wanted, taken)
         await store.put(final, acc)
         taken.add(final)
-        known.add((acc.secret, acc.type))
+        by_secret[acc.secret] = (final, acc)
         res.added.append(final)
         if final != wanted:
             res.renamed.append((wanted, final))

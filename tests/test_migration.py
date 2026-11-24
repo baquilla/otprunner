@@ -14,7 +14,7 @@ def test_decode_sample():
     batch = migration.decode(SAMPLE)
     (a,) = batch.accounts
     assert b32encode(a.secret) == "JBSWY3DPEHPK3PXP"
-    assert (a.issuer, a.name, a.type, a.digits, a.algorithm) == ("Example", "alice@google.com", "totp", 6, "SHA1")
+    assert (a.issuer, a.name, a.type, a.digits, a.algorithm) == ("Example", "Example:alice@google.com", "totp", 6, "SHA1")
     assert (batch.batch_size, batch.batch_index) == (1, 0)
 
 

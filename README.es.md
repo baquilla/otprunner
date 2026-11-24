@@ -97,7 +97,14 @@ KRunner no refresca los resultados hasta que cambia la búsqueda; Enter copia si
   que delega en una unidad systemd de usuario: logs en `journalctl --user -u otprunner`.
 - El servicio cachea las cuentas durante la sesión de KRunner y se cierra tras
   `idle_timeout` segundos sin uso: los secretos no se quedan en memoria indefinidamente.
-- Cada cuenta guarda la URI `otpauth://` completa. En KWallet, como una entrada de la
+- Cada cuenta guarda la URI `otpauth://` exactamente como llegó (solo cambia el `counter`
+  de las HOTP). Si se añade un código cuyo secreto ya está guardado, se sustituye esa URI y
+  se mantiene el nombre de la cuenta.
+- El nombre de la cuenta es la etiqueta de la URI tal cual, sin partirla nunca por «:»; si
+  hay `issuer` y la etiqueta no empieza ya por `issuer:`, se antepone:
+  `otpauth://totp/alice?issuer=GitHub` → `GitHub:alice`; `otpauth://totp/GitHub:alice` → `GitHub:alice`.
+  Las exportaciones de Google no traen URI: se genera a partir de sus campos nombre e issuer.
+- Las cuentas se guardan por nombre. En KWallet, como una entrada de la
   carpeta `otprunner` del monedero; en Secret Service, como un item con atributos
   `application=otprunner` y `account=<nombre>`.
 - Las imágenes con secretos (capturas, QR de export) se crean en `$XDG_RUNTIME_DIR/otprunner`

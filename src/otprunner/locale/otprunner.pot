@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OTPRunner VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-23 00:26+0000\n"
+"POT-Creation-Date: 2026-11-24 12:52+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -237,6 +237,10 @@ msgstr ""
 msgid "Requires {hint}"
 msgstr ""
 
+#, python-brace-format
+msgid "Same secret, code updated: {names}"
+msgstr ""
+
 msgid "Screen capture"
 msgstr ""
 
@@ -287,6 +291,12 @@ msgstr ""
 
 msgid "Uninstalled. The secrets are still in the keystore."
 msgstr ""
+
+#, python-brace-format
+msgid "Updated {n} account"
+msgid_plural "Updated {n} accounts"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "XDG Screenshot portal"
 msgstr ""
@@ -590,6 +600,10 @@ msgstr ""
 
 #, python-brace-format
 msgid "unsupported type: {type}"
+msgstr ""
+
+#, python-brace-format
+msgid "updated (same secret, name kept): {name}"
 msgstr ""
 
 #, python-brace-format

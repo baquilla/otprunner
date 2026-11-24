@@ -44,7 +44,7 @@ Issues = "https://github.com/baquilla/otprunner/issues"
 Changelog = "https://github.com/baquilla/otprunner/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-asyncio>=0.23", "babel>=2.14", "build>=1", "twine>=5"]
+dev = ["pytest>=8", "pytest-asyncio>=0.23", "babel>=2.14", "build>=1", "twine>=5", "ruff>=0.17", "pre-commit>=4"]
 
 [project.scripts]
 otprunner = "otprunner.cli:main"
@@ -62,3 +62,16 @@ packages = ["src/otprunner"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+# Un if/else con dos textos traducibles se lee mejor que un ternario.
+ignore = ["SIM108"]
+
+[tool.ruff.lint.per-file-ignores]
+# dbus-fast lee las firmas DBus de las anotaciones («s», «a(sss)»…), que no son tipos Python.
+"src/otprunner/runner.py" = ["F722", "F821"]

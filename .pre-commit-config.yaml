@@ -1,0 +1,15 @@
+# pre-commit install --hook-type pre-commit --hook-type commit-msg
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.6
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: conventional-commit
+        name: conventional commit message
+        entry: scripts/check-commits.py
+        language: script
+        stages: [commit-msg]

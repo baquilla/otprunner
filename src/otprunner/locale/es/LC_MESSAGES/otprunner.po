@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OTPRunner VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-24 13:13+0000\n"
+"POT-Creation-Date: 2026-11-24 13:43+0000\n"
 "PO-Revision-Date: 2026-11-23 00:17+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: es\n"
@@ -550,6 +550,9 @@ msgstr "ejecuta el servicio DBus del runner (lo lanza DBus/systemd)"
 msgid "run “otprunner install” to register the runner"
 msgstr "ejecuta «otprunner install» para registrar el runner"
 
+msgid "serve made-up accounts instead of the keystore (for screenshots)"
+msgstr "servir cuentas inventadas en lugar del keystore (para capturas)"
+
 msgid "show as QR codes in the terminal"
 msgstr "mostrar como QR en la terminal"
 
@@ -747,3 +750,4 @@ msgstr "«{filter}» es ambiguo: {matches}"
 #, python-brace-format
 msgid "“{wanted}” already existed: saved as “{final}”"
 msgstr "«{wanted}» ya existía: guardada como «{final}»"
+

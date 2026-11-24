@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OTPRunner VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-24 13:13+0000\n"
+"POT-Creation-Date: 2026-11-24 13:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -540,6 +540,9 @@ msgid "run the runner DBus service (started by DBus/systemd)"
 msgstr ""
 
 msgid "run “otprunner install” to register the runner"
+msgstr ""
+
+msgid "serve made-up accounts instead of the keystore (for screenshots)"
 msgstr ""
 
 msgid "show as QR codes in the terminal"

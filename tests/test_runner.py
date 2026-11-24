@@ -50,7 +50,7 @@ async def test_match_reports_store_errors():
 
     r = runner.Runner(config.Config(), broken)
     (m,) = await r.match("otp")
-    assert m[0] == "error" and "no hay keystore" in m[1] and m[3] == runner.INFORMATIONAL
+    assert m[0] == "error" and "no hay keystore" in m[1] and m[3] == runner.EXACT and m[5]["category"] == "OTPRunner"
 
 
 async def test_cache_and_forget(store):
@@ -232,3 +232,13 @@ async def test_max_results_configurable():
     assert r.cfg.max_results == 7  # por defecto
     ms = await r.match("otp a")
     assert len(ms) == 7 and ms[-1][0] == f"query{runner.SEP}otp add " and "+25 more" in ms[-2][1]
+
+
+async def test_demo_store_has_enough_accounts():
+    from otprunner import demo
+
+    s = demo.store()
+    names = await s.names()
+    assert len(names) == len(demo.ACCOUNTS) > 7 and "GitHub:alice" in names
+    ms = await make(s).match("otp a")
+    assert ms[-1][0] == f"query{runner.SEP}otp add "

@@ -30,6 +30,8 @@ OBJECT_PATH = "/runner"
 # Plasma::QueryMatch::Type
 EXACT, POSSIBLE, INFORMATIONAL = 100, 30, 50
 SEP = "\x1f"
+# Cabecera de grupo en KRunner.
+CATEGORY = APP_NAME
 # KRunner (Milou) muestra como mucho 15 resultados, repartidos entre los runners que
 # respondan; recortamos a ``max_results`` para que los comandos y el «hay más» quepan.
 # Subcomandos en el orden en que se sugieren; «rm» es alias de «remove».
@@ -100,7 +102,8 @@ class Runner:
             text = _("No accounts yet")
         else:
             text = _("No account matches “{filter}”").format(filter=flt)
-        return ("none", text, "dialog-information", INFORMATIONAL, 0.5, {})
+        # EXACT y en nuestra categoría: si no, KRunner la pone aparte y debajo de los comandos.
+        return ("none", text, "dialog-information", EXACT, 0.5, {"category": CATEGORY})
 
     async def match(self, query: str) -> list:
         flt = self.parse(query)
@@ -110,7 +113,7 @@ class Runner:
         try:
             accounts = await self.accounts()
         except (StoreError, OtpError) as e:
-            return [("error", f"{APP_NAME}: {e}", "dialog-error", INFORMATIONAL, 1.0, {"subtext": _("Keystore")})]
+            return [("error", f"{APP_NAME}: {e}", "dialog-error", EXACT, 1.0, {"subtext": _("Keystore"), "category": CATEGORY})]
         cmd, _sep, arg = flt.partition(" ")
         cmd = ALIASES.get(cmd.casefold(), cmd.casefold())
         if cmd == "add":
@@ -148,7 +151,7 @@ class Runner:
             exact = name.casefold() == f
             relevance = 1.0 if exact else max(0.5, 0.99 - i * 0.001)
             out.append((f"code{SEP}{name}", text, ICON, EXACT, relevance,
-                        {"subtext": sub, "category": "OTP"}))
+                        {"subtext": sub, "category": CATEGORY}))
         return out + self._more(more, flt) + self._command_matches(cmds)
 
     # --- ayudas de navegación ---------------------------------------------------
@@ -166,13 +169,13 @@ class Runner:
         text = ngettext("+{n} more: type more letters to narrow it down",
                         "+{n} more: type more letters to narrow it down", more).format(n=more)
         return [(f"query{SEP}{self.cfg.keywords[0]} {flt}", text, "go-down-search", EXACT, 0.4,
-                 {"category": "OTP"})]
+                 {"category": CATEGORY})]
 
     def _search_hint(self, n: int) -> tuple:
         kw = self.cfg.keywords[0]
         text = ngettext("Type to search your {n} account", "Type to search your {n} accounts", n).format(n=n)
         return (f"query{SEP}{kw} ", text, "search", EXACT, 0.5,
-                {"subtext": _("{keyword} <filter>").format(keyword=kw), "category": "OTP"})
+                {"subtext": _("{keyword} <filter>").format(keyword=kw), "category": CATEGORY})
 
     def _command_matches(self, cmds) -> list:
         """Sugerencias de subcomando; al elegirlas, KRunner se reabre con «otp <cmd> »."""
@@ -187,7 +190,7 @@ class Runner:
         for j, c in enumerate(cmds):
             text, icon, sub = info[c]
             out.append((f"query{SEP}{kw} {c} ", text, icon, EXACT, 0.3 - j * 0.01,
-                        {"subtext": sub.format(keyword=kw), "category": "OTP"}))
+                        {"subtext": sub.format(keyword=kw), "category": CATEGORY}))
         return out
 
     def _manage_matches(self, cmd: str, flt: str, accounts: dict) -> list:
@@ -202,14 +205,14 @@ class Runner:
             sub = _("Shows the secrets on screen (asks for confirmation)")
             if not flt:
                 sub += "  ·  " + _("filter with: {keyword} export <text>").format(keyword=self.cfg.keywords[0])
-            return [(f"export{SEP}{flt}", text, "document-export", EXACT, 1.0, {"subtext": sub, "category": "OTP"})]
+            return [(f"export{SEP}{flt}", text, "document-export", EXACT, 1.0, {"subtext": sub, "category": CATEGORY})]
         if cmd == "remove":
             label, icon, sub = _("Remove “{name}”"), "edit-delete", _("Asks for confirmation")
         else:
             label, icon, sub = _("Rename “{name}”…"), "edit-rename", _("Asks for the new name")
         names, more = self._fit(names, self.cfg.max_results)
         return [(f"{cmd}{SEP}{n}", label.format(name=n), icon, EXACT, max(0.5, 0.99 - i * 0.001),
-                 {"subtext": sub, "category": "OTP"})
+                 {"subtext": sub, "category": CATEGORY})
                 for i, n in enumerate(names)] + self._more(more, f"{cmd} {flt}".strip())
 
     async def _manage(self, cmd: str, arg: str) -> None:
@@ -283,12 +286,12 @@ class Runner:
         return [
             (f"add{SEP}screen{SEP}{name}", screen, "spectacle", EXACT, 1.0,
              {"subtext": _("Select the area with the QR code (a Google export works too)") + hint,
-              "category": "OTP"}),
+              "category": CATEGORY}),
             (f"add{SEP}clipboard{SEP}{name}", clip, "edit-paste", EXACT, 0.9,
              {"subtext": _("otpauth:// or otpauth-migration:// URI, or an image of the QR code") + hint,
-              "category": "OTP"}),
+              "category": CATEGORY}),
             (f"add{SEP}camera{SEP}{name}", cam, "camera-web", EXACT, 0.8,
-             {"subtext": cam_sub + hint, "category": "OTP"}),
+             {"subtext": cam_sub + hint, "category": CATEGORY}),
         ]
 
     async def _query(self, text: str) -> None:
@@ -394,12 +397,22 @@ class KRunnerInterface(ServiceInterface):
         self.runner.forget()
 
 
-async def serve(idle_timeout: float | None = None) -> int:
+async def serve(idle_timeout: float | None = None, demo: bool = False) -> int:
     cfg = config.load()
     i18n.setup(cfg.language)
     idle = cfg.idle_timeout if idle_timeout is None else idle_timeout
     bus = await MessageBus().connect()
-    runner = Runner(cfg, lambda: open_store(cfg.backend, bus=bus), bus=bus)
+    if demo:
+        from . import demo as demo_mod
+
+        fake = demo_mod.store()
+
+        async def factory():
+            return fake
+    else:
+        def factory():
+            return open_store(cfg.backend, bus=bus)
+    runner = Runner(cfg, factory, bus=bus)
     bus.export(OBJECT_PATH, KRunnerInterface(runner))
     reply = await bus.request_name(BUS_NAME)
     if reply not in (RequestNameReply.PRIMARY_OWNER, RequestNameReply.ALREADY_OWNER):

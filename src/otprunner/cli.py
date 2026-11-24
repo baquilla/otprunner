@@ -66,7 +66,7 @@ async def _cmd(args, cfg) -> int:
     if args.cmd == "serve":
         from . import runner
 
-        return await runner.serve(idle_timeout=args.idle)
+        return await runner.serve(idle_timeout=args.idle, demo=args.demo)
 
     async with await open_store(args.backend or cfg.backend) as store:
         if args.cmd == "list":
@@ -227,6 +227,7 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("serve", help=_("run the runner DBus service (started by DBus/systemd)"))
     s.add_argument("-v", "--verbose", action="store_true", help=_("debug logging"))
     s.add_argument("--idle", type=float, help=_("idle seconds before exiting (0 = never)"))
+    s.add_argument("--demo", action="store_true", help=_("serve made-up accounts instead of the keystore (for screenshots)"))
     return p
 
 

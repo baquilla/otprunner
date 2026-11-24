@@ -44,6 +44,7 @@ shows its code.
 | <img src="https://raw.githubusercontent.com/baquilla/otprunner/main/docs/img/krunner-more.png" width="400" alt="otp a with a '+9 more' line"> | Long lists are trimmed so the commands stay visible. Keep typing to narrow down. |
 | <img src="https://raw.githubusercontent.com/baquilla/otprunner/main/docs/img/notification.png" width="260" alt="Notification: code for GitHub:alice copied"> | <kbd>Enter</kbd> copies the current code. |
 | <img src="https://raw.githubusercontent.com/baquilla/otprunner/main/docs/img/export-confirm.png" width="400" alt="Export confirmation dialog"> | **`otp export`** shows QR codes to scan with your phone, after a warning. |
+| <img src="https://raw.githubusercontent.com/baquilla/otprunner/main/docs/img/export-qr.png" width="400" alt="Two Google Authenticator transfer QR codes side by side"> | All the codes in one window, sized to fit your screen. |
 
 ## Install
 
@@ -56,8 +57,9 @@ otprunner doctor             # checks the keystore, clipboard, screen capture…
 
 Then open KRunner and type `otp add`.
 
-It is used daily on Plasma 5.27 with X11. Plasma 6, Wayland and the Secret Service backend
-are supported but less tested: reports are welcome.
+It is used daily on Plasma 5.27 with X11, and installs cleanly on Ubuntu 24.04, 25.10,
+26.04 and 26.10. Plasma 6, Wayland and GNOME are supported but less tested: reports are
+welcome.
 
 `otprunner uninstall` removes the plugin; your secrets stay in the keystore.
 

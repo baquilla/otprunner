@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OTPRunner VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-24 14:18+0000\n"
+"POT-Creation-Date: 2026-11-24 14:36+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -422,10 +422,6 @@ msgstr ""
 msgid "kwalletd is not on the session bus"
 msgstr ""
 
-#, python-brace-format
-msgid "leftover from the old version: {path} (“otprunner install” removes it)"
-msgstr ""
-
 msgid "list accounts and codes"
 msgstr ""
 
@@ -521,10 +517,6 @@ msgid "register the runner in KRunner (and the systemd user unit)"
 msgstr ""
 
 msgid "remove an account"
-msgstr ""
-
-#, python-brace-format
-msgid "removed (old version): {path}"
 msgstr ""
 
 #, python-brace-format

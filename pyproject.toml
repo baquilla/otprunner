@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "otprunner"
+name = "OTPRunner"
 dynamic = ["version"]
 description = "TOTP codes in KRunner, with secrets in the system keystore"
 license = "GPL-3.0-or-later"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OTPRunner VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-24 14:18+0000\n"
+"POT-Creation-Date: 2026-11-24 14:36+0000\n"
 "PO-Revision-Date: 2026-11-23 00:17+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: es\n"
@@ -430,10 +430,6 @@ msgstr "keystore: auto, kwallet, secretservice (por defecto, el de la config)"
 msgid "kwalletd is not on the session bus"
 msgstr "kwalletd no está en el bus de sesión"
 
-#, python-brace-format
-msgid "leftover from the old version: {path} (“otprunner install” removes it)"
-msgstr "resto de la versión antigua: {path} (lo borra «otprunner install»)"
-
 msgid "list accounts and codes"
 msgstr "lista cuentas y códigos"
 
@@ -532,10 +528,6 @@ msgstr "registra el runner en KRunner (y la unidad systemd de usuario)"
 
 msgid "remove an account"
 msgstr "borra una cuenta"
-
-#, python-brace-format
-msgid "removed (old version): {path}"
-msgstr "borrado (versión antigua): {path}"
 
 #, python-brace-format
 msgid "removed: {name}"
@@ -758,4 +750,3 @@ msgstr "«{filter}» es ambiguo: {matches}"
 #, python-brace-format
 msgid "“{wanted}” already existed: saved as “{final}”"
 msgstr "«{wanted}» ya existía: guardada como «{final}»"
-

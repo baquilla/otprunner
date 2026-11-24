@@ -120,9 +120,6 @@ async def run() -> int:
             print(f"  {OK if path.exists() else NO} {key:8} {path}")
         if not install.paths()["runner"].exists():
             print(f"  {WARN} " + _("run “otprunner install” to register the runner"))
-        for old in install.legacy_paths():
-            if old.exists():
-                print(f"  {WARN} " + _("leftover from the old version: {path} (“otprunner install” removes it)").format(path=old))
 
         for title, provs, hint in groups:
             print(title)

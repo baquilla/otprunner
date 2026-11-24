@@ -72,14 +72,6 @@ def install_icons() -> list[Path]:
     return out
 
 
-def legacy_paths() -> list[Path]:
-    """Restos de la versión antigua (kservices5 + org.kde.otprunner)."""
-    return [
-        _data_home() / "kservices5/otprunner.desktop",
-        _data_home() / "dbus-1/services/otprunner.service",
-    ]
-
-
 def exec_line() -> str:
     exe = sys.executable
     if any(c.isspace() for c in exe):
@@ -175,11 +167,6 @@ def install(verbose: bool = True) -> int:
     for icon in install_icons():
         if verbose:
             print(_("written: {path}").format(path=icon))
-    for old in legacy_paths():
-        if old.exists() and "otprunner" in old.read_text(errors="replace"):
-            old.unlink()
-            if verbose:
-                print(_("removed (old version): {path}").format(path=old))
     if systemd:
         _run(["systemctl", "--user", "daemon-reload"])
         # Si había una instancia corriendo, que coja el código/config nuevos.
@@ -196,7 +183,7 @@ def install(verbose: bool = True) -> int:
 def uninstall(verbose: bool = True) -> int:
     if has_systemd_user():
         _run(["systemctl", "--user", "stop", UNIT])
-    for f in [*paths().values(), *legacy_paths()]:
+    for f in paths().values():
         if f.exists():
             f.unlink()
             if verbose:

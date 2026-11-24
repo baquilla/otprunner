@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OTPRunner VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-24 12:59+0000\n"
+"POT-Creation-Date: 2026-11-24 13:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -631,10 +631,6 @@ msgid "zbarcam failed ({rc}): {detail}"
 msgstr ""
 
 #, python-brace-format
-msgid "{app}: QR {i} of {n} — scan it with Google Authenticator"
-msgstr ""
-
-#, python-brace-format
 msgid "{app}: TOTP codes with the secrets in the system keystore."
 msgstr ""
 
@@ -653,6 +649,12 @@ msgstr ""
 #, python-brace-format
 msgid "{app}: export"
 msgstr ""
+
+#, python-brace-format
+msgid "{app}: scan the QR code with Google Authenticator"
+msgid_plural "{app}: scan the {n} QR codes with Google Authenticator"
+msgstr[0] ""
+msgstr[1] ""
 
 #, python-brace-format
 msgid "{app}: show the QR code to the camera (Esc or close to cancel)"

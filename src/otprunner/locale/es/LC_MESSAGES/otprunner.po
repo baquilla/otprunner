@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OTPRunner VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-11-24 12:59+0000\n"
+"POT-Creation-Date: 2026-11-24 13:13+0000\n"
 "PO-Revision-Date: 2026-11-23 00:17+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: es\n"
@@ -639,10 +639,6 @@ msgid "zbarcam failed ({rc}): {detail}"
 msgstr "zbarcam falló ({rc}): {detail}"
 
 #, python-brace-format
-msgid "{app}: QR {i} of {n} — scan it with Google Authenticator"
-msgstr "{app}: QR {i} de {n} — escanéalo con Google Authenticator"
-
-#, python-brace-format
 msgid "{app}: TOTP codes with the secrets in the system keystore."
 msgstr "{app}: códigos TOTP con los secretos en el keystore del sistema."
 
@@ -661,6 +657,12 @@ msgstr "{app}: no se pudo copiar el código"
 #, python-brace-format
 msgid "{app}: export"
 msgstr "{app}: exportar"
+
+#, python-brace-format
+msgid "{app}: scan the QR code with Google Authenticator"
+msgid_plural "{app}: scan the {n} QR codes with Google Authenticator"
+msgstr[0] "{app}: escanea el código QR con Google Authenticator"
+msgstr[1] "{app}: escanea los {n} códigos QR con Google Authenticator"
 
 #, python-brace-format
 msgid "{app}: show the QR code to the camera (Esc or close to cancel)"
@@ -745,4 +747,3 @@ msgstr "«{filter}» es ambiguo: {matches}"
 #, python-brace-format
 msgid "“{wanted}” already existed: saved as “{final}”"
 msgstr "«{wanted}» ya existía: guardada como «{final}»"
-

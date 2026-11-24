@@ -251,17 +251,19 @@ class Runner:
         if not await dialogs.confirm(_("{app}: export").format(app=APP_NAME), msg, ok_label=_("Show QR")):
             return
         d = capture.private_dir()
-        for i, uri in enumerate(exp.uris, 1):
-            path = exporting.write_png(uri, d)
-            try:
-                if exp.uris[0].startswith("otpauth://"):
-                    title = _("{app}: {name} — scan it with your authenticator app").format(
-                        app=APP_NAME, name=exp.exported[0])
-                else:
-                    title = _("{app}: QR {i} of {n} — scan it with Google Authenticator").format(app=APP_NAME, i=i, n=n)
-                await dialogs.show_image(path, title)
-            finally:
-                path.unlink(missing_ok=True)
+        if exp.uris[0].startswith("otpauth://"):
+            path = exporting.write_png(exp.uris[0], d)
+            title = _("{app}: {name} — scan it with your authenticator app").format(app=APP_NAME, name=exp.exported[0])
+        else:
+            # Todos a la vez: en la pantalla del PC caben y el móvil los va leyendo en orden.
+            captions = [f"{i}/{n}" for i in range(1, n + 1)]
+            path = exporting.write_sheet(exp.uris, captions, d)
+            title = ngettext("{app}: scan the QR code with Google Authenticator",
+                             "{app}: scan the {n} QR codes with Google Authenticator", n).format(app=APP_NAME, n=n)
+        try:
+            await dialogs.show_image(path, title)
+        finally:
+            path.unlink(missing_ok=True)
         if exp.skipped:
             await notify(self.bus, _("Some accounts were not exported"), skipped, icon="dialog-warning")
 

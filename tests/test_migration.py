@@ -33,7 +33,6 @@ def test_roundtrip_batches():
     batches = [migration.decode(u) for u in uris]
     assert [b.batch_index for b in batches] == [0, 1, 2]
     assert {b.batch_size for b in batches} == {3}
-    assert len({b.batch_id for b in batches}) == 1
     assert [a for b in batches for a in b.accounts] == accs
 
 

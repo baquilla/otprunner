@@ -69,6 +69,14 @@ def dump(uri: str, names: bool) -> None:
                     print(f"      [{n2}] {l2} = {v2}")
                 elif n2 in (2, 3) and names:
                     print(f"      [{n2}] {l2} = {v2.decode('utf-8', 'replace')!r}")
+                elif n2 not in OTP and wt2 == 2:
+                    # Campo desconocido: su estructura, por si es un mensaje anidado (sin valores).
+                    try:
+                        inner = ", ".join(f"[{a}] wt{b}" + (f"={c}" if b == 0 else f" {len(c)}B")
+                                          for a, b, c, _ in fields(v2))
+                    except (ValueError, IndexError):
+                        inner = "no es protobuf"
+                    print(f"      [{n2}] {l2}: {len(v2)} bytes (wt {wt2}): {inner}")
                 else:
                     print(f"      [{n2}] {l2}: {len(v2)} bytes (wt {wt2})")
         else:

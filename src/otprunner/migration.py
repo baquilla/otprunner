@@ -15,7 +15,6 @@ El formato no admite periodo distinto de 30 s ni dígitos distintos de 6/8.
 from __future__ import annotations
 
 import base64
-import random
 from dataclasses import dataclass
 from urllib.parse import parse_qs, quote, urlsplit
 
@@ -165,11 +164,12 @@ def encode(accounts: list[Account], batch_size: int = DEFAULT_BATCH) -> list[str
     if not accounts:
         return []
     chunks = [accounts[i : i + batch_size] for i in range(0, len(accounts), batch_size)]
-    batch_id = random.randint(1, 2**31 - 1)
     uris = []
     for idx, chunk in enumerate(chunks):
         payload = b"".join(_f_bytes(1, _encode_params(a)) for a in chunk)
-        payload += _f_varint(2, 1) + _f_varint(3, len(chunks)) + _f_varint(4, idx) + _f_varint(5, batch_id)
+        # Como las exportaciones actuales de Google Authenticator: version 2 y sin batch_id
+        # (con version 1 + batch_id, la app lee el QR y vuelve atrás sin importar nada).
+        payload += _f_varint(2, 2) + _f_varint(3, len(chunks)) + _f_varint(4, idx)
         data = base64.b64encode(payload).decode()
         uris.append(f"{SCHEME}://offline?data={quote(data, safe='')}")
     return uris

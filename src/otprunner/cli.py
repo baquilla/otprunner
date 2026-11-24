@@ -149,7 +149,8 @@ async def _cmd(args, cfg) -> int:
                     else:
                         print(accounts[n].to_uri())
                 return 0
-            exp = exporting.build({n: accounts[n] for n in names}, batch_size=args.batch)
+            exp = exporting.build({n: accounts[n] for n in names}, batch_size=args.batch,
+                                  single_otpauth=args.format == "auto")
             for n, reason in exp.skipped:
                 print(_("skipped {name}: {reason} (use --format otpauth)").format(name=n, reason=reason), file=sys.stderr)
             for i, uri in enumerate(exp.uris, 1):

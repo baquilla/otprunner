@@ -73,10 +73,12 @@ def install_icons() -> list[Path]:
 
 
 def legacy_paths() -> list[Path]:
-    """Restos de la versión antigua (kservices5 + org.kde.otprunner)."""
+    """Restos de versiones anteriores: kservices5 + org.kde.otprunner, y el nombre DBus
+    net.bacamt.otprunner de las versiones previas a la publicación."""
     return [
         _data_home() / "kservices5/otprunner.desktop",
         _data_home() / "dbus-1/services/otprunner.service",
+        _data_home() / "dbus-1/services/net.bacamt.otprunner.service",
     ]
 
 
@@ -135,7 +137,7 @@ def dbus_service(systemd: bool) -> str:
 
 def systemd_unit() -> str:
     return f"""[Unit]
-Description={APP_NAME}: códigos TOTP para KRunner
+Description={APP_NAME}: TOTP codes for KRunner
 PartOf=graphical-session.target
 
 [Service]

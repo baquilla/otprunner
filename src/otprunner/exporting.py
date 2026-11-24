@@ -63,7 +63,8 @@ def write_sheet(uris: list[str], captions: list[str], directory: Path,
     cols = min(n, 3) if n <= 3 else math.ceil(math.sqrt(n))
     rows = math.ceil(n / cols)
     gap, caption_h = 24, 40
-    size = min((max_width - gap * (cols + 1)) // cols, (max_height - (gap + caption_h) * rows - gap) // rows, 480)
+    # Por debajo de ~180 px el móvil ya no lee bien un QR de 10 cuentas.
+    size = max(min((max_width - gap * (cols + 1)) // cols, (max_height - (gap + caption_h) * rows - gap) // rows, 480), 180)
     try:
         font = ImageFont.load_default(size=24)
     except TypeError:  # Pillow < 10.1

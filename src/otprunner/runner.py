@@ -23,7 +23,8 @@ from .store import Store, StoreError, open_store
 
 log = logging.getLogger(__name__)
 
-BUS_NAME = "net.bacamt.otprunner"
+# Identificador inverso del proyecto (sirve también como app-id de Flathub).
+BUS_NAME = "io.github.baquilla.otprunner"
 ICON = "otprunner"  # instalado en hicolor por «otprunner install»
 OBJECT_PATH = "/runner"
 
@@ -260,7 +261,8 @@ class Runner:
         else:
             # Todos a la vez: en la pantalla del PC caben y el móvil los va leyendo en orden.
             captions = [f"{i}/{n}" for i in range(1, n + 1)]
-            path = exporting.write_sheet(exp.uris, captions, d)
+            max_w, max_h = await asyncio.to_thread(dialogs.image_area)
+            path = exporting.write_sheet(exp.uris, captions, d, max_width=max_w, max_height=max_h)
             title = ngettext("{app}: scan the QR code with Google Authenticator",
                              "{app}: scan the {n} QR codes with Google Authenticator", n).format(app=APP_NAME, n=n)
         try:

@@ -35,3 +35,19 @@ def test_install_icons(tmp_path, monkeypatch):
     assert all(p.read_text().startswith("<svg") for p in out)
     assert "Icon=otprunner" in install.runner_desktop(config.Config())
     assert all(p in install.paths().values() for p in out)
+
+
+def test_install_replaces_old_dbus_name(tmp_path, monkeypatch):
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
+    monkeypatch.setattr(install, "has_systemd_user", lambda: False)
+    monkeypatch.setattr(install, "_run", lambda cmd: None)
+    old = tmp_path / "data/dbus-1/services/net.bacamt.otprunner.service"
+    old.parent.mkdir(parents=True)
+    old.write_text("[D-BUS Service]\nName=net.bacamt.otprunner\nExec=/usr/bin/python3 -m otprunner serve\n")
+    assert install.install(verbose=False) == 0
+    assert not old.exists()
+    new = install.paths()["dbus"]
+    assert new.name == "io.github.baquilla.otprunner.service"
+    assert "Name=io.github.baquilla.otprunner" in new.read_text()
+    assert "X-Plasma-DBusRunner-Service=io.github.baquilla.otprunner" in install.paths()["runner"].read_text()

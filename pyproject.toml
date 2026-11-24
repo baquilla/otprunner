@@ -10,7 +10,7 @@ license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.10"
-authors = [{ name = "Juan Javier Baca" }]
+authors = [{ name = "baquilla" }]
 keywords = ["totp", "2fa", "otp", "krunner", "kde", "plasma", "kwallet", "secret-service", "authenticator"]
 classifiers = [
     "Development Status :: 4 - Beta",

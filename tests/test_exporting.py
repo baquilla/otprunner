@@ -29,3 +29,33 @@ def test_write_sheet_has_all_codes(tmp_path):
     from PIL import Image
     found = sorted(r.text for r in zxingcpp.read_barcodes(Image.open(path)))
     assert found == sorted(uris)
+
+
+LISTING = """Monitors: 3
+ 0: +*eDP1 1920/310x1080/170+319+1080  eDP1
+ 1: +DP1 1920/310x515/80+319+2160  DP1
+ 2: +HDMI1 2560/670x1080/280+0+0  HDMI1
+"""
+
+
+def test_image_area_follows_pointer_or_smallest_monitor():
+    from otprunner import dialogs
+
+    mons = dialogs.monitors(LISTING)
+    assert mons[1] == (1920, 515, 319, 2160)
+    assert dialogs.pointer("X=500\nY=2300\nSCREEN=0\nWINDOW=1\n") == (500, 2300)
+    assert dialogs.image_area(mons=mons, ptr=(500, 2300)) == (1280, 355)    # el monitor bajo
+    assert dialogs.image_area(mons=mons, ptr=(100, 100)) == (1280, 760)     # el grande
+    assert dialogs.image_area(mons=mons, ptr=(-5000, 0)) == (1280, 355)     # desconocido: el menor
+    assert dialogs.image_area(mons=[]) == (1280, 760)
+
+
+def test_sheet_fits_a_short_monitor(tmp_path):
+    from PIL import Image
+
+    accs = [Account(secret=bytes([i + 1]) * 20, name=f"user{i}@example.com", issuer=f"Svc{i}") for i in range(16)]
+    uris = migration.encode(accs)
+    path = exporting.write_sheet(uris, ["1/2", "2/2"], tmp_path, max_width=1280, max_height=355)
+    assert Image.open(path).height <= 355
+    import zxingcpp
+    assert sorted(r.text for r in zxingcpp.read_barcodes(Image.open(path))) == sorted(uris)

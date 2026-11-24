@@ -1,0 +1,33 @@
+OTPRunner: your two-factor codes, one keystroke away
+====================================================
+
+TOTP codes in KRunner, with the secrets kept in your system keystore (KWallet or the
+Secret Service). Type "otp git", press Enter, and the code is in your clipboard.
+
+- Add accounts straight from KRunner: select the QR code on screen, paste it, or show it
+  to the webcam.
+- Import and export otpauth:// links and Google Authenticator transfer codes, including QR
+  codes to move your accounts to your phone.
+- A full command line tool too.
+
+HOW TO INSTALL
+--------------
+
+Do not use the Install button: this entry does not install anything. If you press it, a
+terminal opens with these same instructions and nothing else is done.
+
+OTPRunner is installed from PyPI with pipx:
+
+    sudo apt install pipx        # Debian/Ubuntu; use your distribution's package otherwise
+    pipx install OTPRunner
+    otprunner install            # registers the KRunner plugin and the user service
+
+Then open KRunner and type "otp add".
+
+To remove it: "otprunner uninstall", then "pipx uninstall otprunner". Your secrets stay in
+the keystore.
+
+Tested daily on Plasma 5.27 with X11.
+
+Source, screenshots and documentation: https://github.com/baquilla/otprunner
+License: GPL-3.0-or-later

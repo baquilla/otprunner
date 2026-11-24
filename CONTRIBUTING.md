@@ -92,6 +92,18 @@ docs: describe the YubiKey backend in the roadmap
 3. The release workflow tests, builds, publishes to PyPI (Trusted Publishing) and creates
    the GitHub release.
 
+### KDE Store
+
+The KDE Store entry is only a showcase: its archive installs nothing and does not depend on
+the version, so it only needs uploading again when `packaging/kde-store/` changes.
+
+- `scripts/kde-store.sh` builds `build/kde-store/otprunner-kde-store.tar.gz`.
+- `packaging/kde-store/README` is also the entry's description on the store.
+- On *Install*, KRunner's plugin installer asks for confirmation (with buttons to view the
+  README and the script) and runs `install.sh` in a terminal: it checks Python, pipx and
+  OTPRunner, prints the commands and leaves a shell open. `uninstall.sh` does the same
+  for removal.
+
 ## Guidelines
 
 - Never log, print or commit secrets. Test data uses made-up secrets.

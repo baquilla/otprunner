@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- KDE Store showcase entry (`packaging/kde-store/`, built with `scripts/kde-store.sh`): it
+  installs nothing and explains how to install OTPRunner with pipx.
+
 ## 0.2.0 (2026-11-24)
 
 First public release, rewritten from a personal script.

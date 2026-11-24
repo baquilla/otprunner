@@ -72,6 +72,26 @@ welcome.
 
 The interface is available in English and Spanish; new translations are welcome.
 
+## Roadmap
+
+Ideas and planned work; discussion and help welcome in the
+[issues](https://github.com/baquilla/otprunner/issues).
+
+- [ ] **KDE Store**: publish in *KRunner Plugins*, so it can be installed from KRunner's
+  settings (*Get New Plugins*).
+- [ ] **YubiKey as an additional store.** Keep the keystore as the default, and use any
+  YubiKey that is plugged in alongside it:
+  - when adding an account, choose where it goes: keystore (default) or a YubiKey;
+  - when searching, show the YubiKey's codes next to the keystore ones (touch-protected
+    credentials ask for a touch);
+  - secrets on a YubiKey cannot be read back, so those accounts cannot be exported.
+- [ ] **Plasma 6 and Wayland**: test on Kubuntu 25.10/26.04 (kwalletd6, portals) and fix
+  what comes up.
+- [ ] **Flathub**, so it shows up in Discover.
+- [ ] **GNOME Shell** search provider.
+- [ ] More translations.
+- [ ] Translate the remaining Spanish code comments to English.
+
 ## License
 
 [GPL-3.0-or-later](https://github.com/baquilla/otprunner/blob/main/LICENSE). Forks are

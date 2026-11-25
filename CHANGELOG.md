@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.1 (2026-11-25)
 
 - Python 3.10: keep zxing-cpp below 3.2, which has no wheels for it and fails to build.
 - KDE Store showcase entry (`packaging/kde-store/`, built with `scripts/kde-store.sh`): it
